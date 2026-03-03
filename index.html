@@ -1048,9 +1048,9 @@ function clearModalFields(){
     if(!el) return;
 
     if(id === "f_name"){
-      el.value = "SELF";  // default
+      el.value = "SELF";
     } else if(id === "f_ldg_day" || id === "f_ldg_night"){
-      el.value = "0";     // default landings
+      el.value = "0";
     } else {
       el.value = "";
     }
@@ -1059,12 +1059,20 @@ function clearModalFields(){
 /* =========================
    Modal behavior
    ========================= */
-function openModal(){ document.getElementById("overlay").classList.add("open"); renderAttachPreview(); }
 function openModal(){
-  clearModalFields();   // <<< ADD THIS
+  clearModalFields();
   document.getElementById("overlay").classList.add("open");
   renderAttachPreview();
-}function overlayClick(e){ if(e.target && e.target.id==="overlay") closeModal(); }
+
+  // small delay so modal animation finishes
+  setTimeout(() => {
+    const dateField = document.getElementById("f_date");
+    if(dateField){
+      dateField.focus();
+      dateField.select();
+    }
+  }, 120);
+}
 
 /* =========================
    Add flight (first empty row on current page, else next page)
