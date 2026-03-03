@@ -107,16 +107,29 @@
       box-shadow:var(--shadow);
     }
 
-    .brand{display:flex;flex-direction:column;gap:4px;min-width:220px;max-width:420px}
+    .brand{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+
+  min-width:340px;     /* fixed stable width */
+  flex:0 0 auto;
+}
     .brand .title{
-      display:flex;align-items:center;gap:10px;
-      font-weight:1000;
-      line-height:1.1;
-      letter-spacing:4px;
-      text-transform:uppercase;
-      white-space:nowrap;
-      font-size:19px;
-    }
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  font-weight:1000;
+  line-height:1.05;
+  letter-spacing:3px;
+
+  text-transform:uppercase;
+  white-space:nowrap;
+
+  font-size:22px;          /* bigger */
+  flex-shrink:0;           /* prevent compression */
+}
     .brand .sub{
       font-size:11px;
       letter-spacing:3px;
@@ -126,9 +139,13 @@
     }
 
     .kpis{
-      display:flex;align-items:center;justify-content:center;
-      gap:14px;flex:1;flex-wrap:wrap;min-width:320px;
-    }
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+
+  flex:0 0 auto;        /* DO NOT stretch */
+}
     .kpi{
       min-width:150px;text-align:center;
       padding:10px 12px;border-radius:14px;
@@ -944,7 +961,51 @@ function clearRow(index){
   saveJSON(KEY_FLIGHTS, flights);
   render(true);
 }
+function emptyTotals(){
+  return {
+    total:0,
+    night:0, ifr:0, pic:0, cop:0, dual:0, fi:0,
+    ldgDay:0, ldgNight:0,
+    fstd:0
+  };
+}
 
+function addTotals(a,b){
+  return {
+    total: a.total + b.total,
+    night: a.night + b.night,
+    ifr: a.ifr + b.ifr,
+    pic: a.pic + b.pic,
+    cop: a.cop + b.cop,
+    dual: a.dual + b.dual,
+    fi: a.fi + b.fi,
+    ldgDay: a.ldgDay + b.ldgDay,
+    ldgNight: a.ldgNight + b.ldgNight,
+    fstd: a.fstd + b.fstd
+  };
+}
+
+function sumFlightsRange(fromIndex, toIndexExclusive){
+  const sum = emptyTotals();
+  for(let i=fromIndex; i<toIndexExclusive; i++){
+    const f = flights[i];
+    if(!f) continue;
+
+    sum.total += toMins(f.total);
+    sum.night += toMins(f.night);
+    sum.ifr += toMins(f.ifr);
+    sum.pic += toMins(f.pic);
+    sum.cop += toMins(f.cop);
+    sum.dual += toMins(f.dual);
+    sum.fi += toMins(f.fi);
+
+    sum.ldgDay += (parseInt(f.ldgDay,10)||0);
+    sum.ldgNight += (parseInt(f.ldgNight,10)||0);
+
+    sum.fstd += toMins(f.simTotal);
+  }
+  return sum;
+}
 /* =========================
    Render
    ========================= */
@@ -961,24 +1022,9 @@ function render(forceButtons=true){
     saveJSON(KEY_FLIGHTS, flights);
   }
 
-  let sum = { total:0, ldgDay:0, ldgNight:0, night:0, ifr:0, pic:0, cop:0, dual:0, fi:0, fstd:0 };
-
   for(let r=0; r<ROWS_PER_PAGE; r++){
     const idx = start + r;
     const f = flights[idx];
-
-    if(f){
-      sum.total += toMins(f.total);
-      sum.ldgDay += (parseInt(f.ldgDay,10)||0);
-      sum.ldgNight += (parseInt(f.ldgNight,10)||0);
-      sum.night += toMins(f.night);
-      sum.ifr += toMins(f.ifr);
-      sum.pic += toMins(f.pic);
-      sum.cop += toMins(f.cop);
-      sum.dual += toMins(f.dual);
-      sum.fi += toMins(f.fi);
-      sum.fstd += toMins(f.simTotal);
-    }
 
     const v = (key) => (f && f[key]) ? f[key] : "";
     const tr = document.createElement("tr");
@@ -1014,38 +1060,36 @@ function render(forceButtons=true){
 
     tbody.appendChild(tr);
   }
+/* previous totals */
 
-  /* previous totals */
-  const p = {
-    total: toMins(prev.total),
-    night: toMins(prev.night),
-    ifr: toMins(prev.ifr),
-    pic: toMins(prev.pic),
-    cop: toMins(prev.cop),
-    dual: toMins(prev.dual),
-    fi: toMins(prev.fi),
-    ldgDay: parseInt(prev.ldg_day,10)||0,
-    ldgNight: parseInt(prev.ldg_night,10)||0,
-    fstd: toMins(prev.fstd)
-  };
+// Page totals (this page only)
+const sum = sumFlightsRange(start, end);
 
-  const grand = {
-    total: sum.total + p.total,
-    night: sum.night + p.night,
-    ifr: sum.ifr + p.ifr,
-    pic: sum.pic + p.pic,
-    cop: sum.cop + p.cop,
-    dual: sum.dual + p.dual,
-    fi: sum.fi + p.fi,
-    ldgDay: sum.ldgDay + p.ldgDay,
-    ldgNight: sum.ldgNight + p.ldgNight,
-    fstd: sum.fstd + p.fstd
-  };
+// Starting totals (before page 1) from your prev input fields
+const base = {
+  total: toMins(prev.total),
+  night: toMins(prev.night),
+  ifr: toMins(prev.ifr),
+  pic: toMins(prev.pic),
+  cop: toMins(prev.cop),
+  dual: toMins(prev.dual),
+  fi: toMins(prev.fi),
+  ldgDay: parseInt(prev.ldg_day,10)||0,
+  ldgNight: parseInt(prev.ldg_night,10)||0,
+  fstd: toMins(prev.fstd)
+};
 
-  document.getElementById("k_total").textContent = fmtMins(grand.total);
-  document.getElementById("k_pic").textContent   = fmtMins(grand.pic);
-  document.getElementById("k_night").textContent = fmtMins(grand.night);
-  document.getElementById("k_ifr").textContent   = fmtMins(grand.ifr);
+// Carried forward from ALL rows before this page (end of previous page)
+const beforeThisPage = sumFlightsRange(0, start);
+const carried = addTotals(base, beforeThisPage);
+
+// Total to date (end of current page)
+const grand = addTotals(carried, sum);
+
+document.getElementById("k_total").textContent = fmtMins(grand.total);
+document.getElementById("k_pic").textContent   = fmtMins(grand.pic);
+document.getElementById("k_night").textContent = fmtMins(grand.night);
+document.getElementById("k_ifr").textContent   = fmtMins(grand.ifr);
 
   const maxPage = Math.max(1, Math.ceil(flights.length / ROWS_PER_PAGE));
   if(currentPage > maxPage) currentPage = maxPage;
@@ -1069,20 +1113,20 @@ function render(forceButtons=true){
     '</tr>'+
 
     '<tr class="total-prev">'+
-      '<td class="tfLabel" colspan="8">TOTAL FROM PREVIOUS PAGE</td>'+
-      '<td>'+(p.total?fmtMins(p.total):"—")+'</td>'+
-      '<td>'+(p.ldgDay||"—")+'</td>'+
-      '<td>'+(p.ldgNight||"—")+'</td>'+
-      '<td>'+(p.night?fmtMins(p.night):"—")+'</td>'+
-      '<td>'+(p.ifr?fmtMins(p.ifr):"—")+'</td>'+
-      '<td>'+(p.pic?fmtMins(p.pic):"—")+'</td>'+
-      '<td>'+(p.cop?fmtMins(p.cop):"—")+'</td>'+
-      '<td>'+(p.dual?fmtMins(p.dual):"—")+'</td>'+
-      '<td>'+(p.fi?fmtMins(p.fi):"—")+'</td>'+
-      '<td colspan="2">—</td>'+
-      '<td>'+(p.fstd?fmtMins(p.fstd):"—")+'</td>'+
-      '<td></td><td></td>'+
-    '</tr>'+
+  '<td class="tfLabel" colspan="8">TOTAL FROM PREVIOUS PAGE</td>'+
+  '<td>'+(carried.total?fmtMins(carried.total):"—")+'</td>'+
+  '<td>'+(carried.ldgDay||"—")+'</td>'+
+  '<td>'+(carried.ldgNight||"—")+'</td>'+
+  '<td>'+(carried.night?fmtMins(carried.night):"—")+'</td>'+
+  '<td>'+(carried.ifr?fmtMins(carried.ifr):"—")+'</td>'+
+  '<td>'+(carried.pic?fmtMins(carried.pic):"—")+'</td>'+
+  '<td>'+(carried.cop?fmtMins(carried.cop):"—")+'</td>'+
+  '<td>'+(carried.dual?fmtMins(carried.dual):"—")+'</td>'+
+  '<td>'+(carried.fi?fmtMins(carried.fi):"—")+'</td>'+
+  '<td colspan="2">—</td>'+
+  '<td>'+(carried.fstd?fmtMins(carried.fstd):"—")+'</td>'+
+  '<td></td><td></td>'+
+'</tr>'+
 
     '<tr class="grand">'+
       '<td class="tfLabel" colspan="8">■ TOTAL TO DATE</td>'+
