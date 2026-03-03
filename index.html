@@ -743,15 +743,78 @@ function saveJSON(k, v){
 }
 
 /* =========================
-   Page
+   Page (BLOCK NEXT PAGE UNTIL CURRENT PAGE IS FULL)
    ========================= */
+
+function isRowFilled(f){
+  // define what "filled" means for your logbook row
+  if(!f) return false;
+
+  // Required core fields (adjust if you want stricter/looser)
+  const required = [
+    "date","depPlace","out","arrPlace","in",
+    "acType","acReg","name","total"
+  ];
+
+  for(const k of required){
+    const v = String(f[k] ?? "").trim();
+    if(!v) return false;
+  }
+
+  // OUT/IN should be HHMM
+  const out = String(f.out||"").replace(/[^0-9]/g,"");
+  const inn = String(f.in||"").replace(/[^0-9]/g,"");
+  if(out.length !== 4 || inn.length !== 4) return false;
+
+  return true;
+}
+
+function pageIsComplete(pageNum){
+  const start = (pageNum - 1) * ROWS_PER_PAGE;
+  const end = start + ROWS_PER_PAGE;
+  for(let i=start; i<end; i++){
+    if(!isRowFilled(flights[i])) return false;
+  }
+  return true;
+}
+
+function updatePagerButtons(){
+  const btnPrev = document.getElementById("btnPrev");
+  const btnNext = document.getElementById("btnNext");
+
+  if(btnPrev) btnPrev.disabled = (currentPage <= 1);
+
+  // block NEXT if current page not complete
+  const blockNext = !pageIsComplete(currentPage);
+  if(btnNext){
+    btnNext.disabled = blockNext;
+    btnNext.style.opacity = blockNext ? "0.45" : "1";
+    btnNext.style.cursor = blockNext ? "not-allowed" : "pointer";
+  }
+}
+
 function setPage(p){
-  const maxPage = Math.max(1, Math.ceil((flights.length || 1) / ROWS_PER_PAGE));
-  currentPage = Math.max(1, Math.min(p, maxPage));
+  const target = Math.max(1, p);
+
+  // allow going backward anytime
+  if(target < currentPage){
+    currentPage = target;
+    localStorage.setItem(KEY_PAGE, String(currentPage));
+    render();
+    return;
+  }
+
+  // going forward: ONLY if current page is complete
+  if(target > currentPage && !pageIsComplete(currentPage)){
+    alert("YOU MUST FILL ALL 10 ROWS ON THIS PAGE BEFORE GOING TO THE NEXT PAGE.");
+    updatePagerButtons();
+    return;
+  }
+
+  currentPage = target;
   localStorage.setItem(KEY_PAGE, String(currentPage));
   render();
 }
-
 /* =========================
    Theme
    ========================= */
@@ -1180,7 +1243,7 @@ sortAllFlights();  }
 
   const maxPage = Math.max(1, Math.ceil(flights.length / ROWS_PER_PAGE));
   if(currentPage > maxPage) currentPage = maxPage;
-  document.getElementById("pageLabel").textContent = "PAGE " + currentPage + " / " + maxPage;
+  document.getElementById("pageLabel").textContent = "PAGE " + currentPage + " / " + maxPage;updatePagerButtons();
 
   /* Footer rows (22 columns total; last 2 are used for PILOT line in grand row) */
   document.getElementById("tfoot").innerHTML =
@@ -1320,14 +1383,21 @@ function saveFromModal(){
   }
 
   if(!placed){
-    // go to next page and place first row
-    currentPage = currentPage + 1;
-    localStorage.setItem(KEY_PAGE, String(currentPage));
-    const newStart = (currentPage - 1) * ROWS_PER_PAGE;
-    const newEnd = newStart + ROWS_PER_PAGE;
-    if (flights.length < newEnd) for (let i = flights.length; i < newEnd; i++) flights.push(null);
-    flights[newStart] = row;
+  // page is full (no empty slots). Only then allow next page.
+  // But also ensure the page is COMPLETE (not partial rows).
+  if(!pageIsComplete(currentPage)){
+    alert("THIS PAGE HAS INCOMPLETE ROWS. COMPLETE ALL 10 ROWS BEFORE ADDING A NEW PAGE.");
+    return;
   }
+
+  setPage(currentPage + 1);
+
+  const newStart = (currentPage - 1) * ROWS_PER_PAGE;
+  const newEnd = newStart + ROWS_PER_PAGE;
+  if (flights.length < newEnd) for (let i = flights.length; i < newEnd; i++) flights.push(null);
+
+  flights[newStart] = row;
+}
 
   if(isTimeHM(row.total)) _lastTimeValue = row.total;
   if(isTimeHM(row.simTotal)) _lastTimeValue = row.simTotal;
