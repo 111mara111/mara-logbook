@@ -950,6 +950,8 @@ function normalizeHM(v){
 
 const TIME_KEYS = ["total","night","ifr","pic","cop","dual","fi","simTotal"];
 const PREV_TIME_KEYS = ["total","night","ifr","pic","cop","dual","fi","fstd"];
+  // ONLY create a new flight row if user starts with DATE or DEP/ARR fields
+const CREATE_KEYS = new Set(["date","depPlace","out","arrPlace","in"]);
 
 /* =========================
    Previous totals UI (includes FSTD total)
@@ -1008,7 +1010,7 @@ function cellInput(idx, key, val, ph, cls){
   const c = ("cell " + (cls||"")).trim();
   const v = (val===undefined || val===null) ? "" : String(val);
   return '<input class="'+c+'" value="'+escapeHTML(v)+'" placeholder="'+escapeHTML(ph||"")+'" '+
-    'oninput="onCell('+idx+', \''+key+'\', this.value)" '+
+    'oninput="onCell('+idx+', \''+key+'\', this.value, this)" '+
     'onblur="onCellBlur('+idx+', \''+key+'\', this)" '+
     'onkeydown="onCellKeyDown(event, '+idx+', \''+key+'\', this)">';
 }
@@ -1026,65 +1028,88 @@ function ensureRowObject(i){
     remarks:""
   };
 }
-function onCell(i, key, value){
-  let f = flights[i];
+function onCell(i, key, value, el){
+  const raw = String(value || "");
+  const trimmed = raw.trim();
 
-// ✅ If row is empty and user types nothing meaningful, DO NOT create object
-if(!f){
-  const v = String(value || "").trim();
-  if(!v) return; // nothing typed -> keep placeholder row truly empty
-
-  // only create object if user actually typed something
-  ensureRowObject(i);
-  f = flights[i];
-}
-  f[key] = up(value);
-
-  if(key==="out" || key==="in"){
-    const digits = String(f[key]||"").replace(/[^0-9]/g,"");
-    if(digits) f[key] = digits;
+  // If row does NOT exist yet:
+  // - Only allow creating it from DATE or DEP/ARR keys
+  // - Ignore typing into PIC/LDG/etc until a row exists
+  if(!flights[i]){
+    if(!CREATE_KEYS.has(key) || !trimmed){
+      if(el) el.value = "";   // keep it empty (no accidental SELF row)
+      return;
+    }
+    ensureRowObject(i); // now create the flight row
   }
 
+  const f = flights[i];
+
+  // store ALL CAPS
+  f[key] = up(raw);
+
+  // keep HHMM digits only for OUT/IN
+  if(key==="out" || key==="in"){
+    const digits = String(f[key]||"").replace(/[^0-9]/g,"");
+    f[key] = digits;
+  }
+
+  // auto block time on OUT/IN changes
   if(key==="out" || key==="in"){
     const block = calcBlock(f.out, f.in);
     if(block!==null){
       const blockStr = fmtMins(block);
       if(!f.total) f.total = blockStr;
-      if(!f.ifr) f.ifr = blockStr;
-      if(!f.pic) f.pic = blockStr;
+      if(!f.ifr)   f.ifr   = blockStr;
+      if(!f.pic)   f.pic   = blockStr;
     }
   }
 
   saveJSON(KEY_FLIGHTS, flights);
   render();
 }
+}
 
 function onCellBlur(i, key, el){
+  const raw = String(el.value || "");
+  const trimmed = raw.trim();
+
+  // If row doesn't exist yet and user blurred a non-create field -> clear it
+  if(!flights[i] && (!CREATE_KEYS.has(key) || !trimmed)){
+    el.value = "";
+    return;
+  }
+
+  // enforce ALL CAPS
   el.value = up(el.value);
 
-  if(TIME_KEYS.includes(key)){
+  // normalize H:MM times only after row exists (or if this is a create key that created it)
+  if(flights[i] && TIME_KEYS.includes(key)){
     const norm = normalizeHM(el.value);
     if(norm) el.value = norm;
     if(isTimeHM(el.value)) _lastTimeValue = el.value;
   }
 
+  // OUT/IN digits only
   if(key==="out" || key==="in"){
-    const digits = String(el.value||"").replace(/[^0-9]/g,"");
-    el.value = digits;
+    el.value = String(el.value||"").replace(/[^0-9]/g,"");
   }
 
-  onCell(i, key, el.value);
+  onCell(i, key, el.value, el);
 }
 
 function onCellKeyDown(e, i, key, el){
   if(e.key !== "Tab") return;
+
+  // do nothing if row doesn't exist yet
+  if(!flights[i]) return;
+
   const empty = !String(el.value||"").trim();
   if(empty && TIME_KEYS.includes(key) && isTimeHM(_lastTimeValue)){
     el.value = _lastTimeValue;
-    onCell(i, key, el.value);
+    onCell(i, key, el.value, el);
   }
 }
-
 function clearRow(index){
   if(!confirm("CLEAR THIS ROW?")) return;
 
