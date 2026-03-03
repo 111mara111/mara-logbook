@@ -521,7 +521,6 @@ th, td { overflow: hidden; }
         <button class="btn" onclick="exportBackup()">BACKUP</button>
         <button class="btn" onclick="importBackup()">RESTORE</button>
         <button class="btn" onclick="window.print()">EXPORT PDF</button>
-        <button class="btn danger" onclick="resetAll()">RESET</button>
       </div>
     </div>
 
@@ -1363,24 +1362,6 @@ function importBackup(){
     r.readAsText(file);
   };
   input.click();
-}
-function resetAll(){
-  if(!confirm("RESET ALL DATA (FLIGHTS + TOTALS)?")) return;
-
-  localStorage.removeItem(KEY_FLIGHTS);
-  localStorage.removeItem(KEY_PREV);
-  localStorage.removeItem(KEY_PAGE);
-
-  flights = [];
-  prev = { total:"0:00", night:"0:00", ifr:"0:00", pic:"0:00", cop:"0:00", dual:"0:00", fi:"", fstd:"0:00", ldg_day:"0", ldg_night:"0" };
-  currentPage = 1;
-
-  saveJSON(KEY_FLIGHTS, flights);
-  saveJSON(KEY_PREV, prev);
-  localStorage.setItem(KEY_PAGE, "1");
-
-  compactFlights();
-  render();
 }
 
 /* =========================
