@@ -794,24 +794,7 @@ function updatePagerButtons(){
 }
 
 function setPage(p){
-  const target = Math.max(1, p);
-
-  // allow going backward anytime
-  if(target < currentPage){
-    currentPage = target;
-    localStorage.setItem(KEY_PAGE, String(currentPage));
-    render();
-    return;
-  }
-
-  // going forward: ONLY if current page is complete
-  if(target > currentPage && !pageIsComplete(currentPage)){
-    alert("YOU MUST FILL ALL 10 ROWS ON THIS PAGE BEFORE GOING TO THE NEXT PAGE.");
-    updatePagerButtons();
-    return;
-  }
-
-  currentPage = target;
+  currentPage = Math.max(1, p);
   localStorage.setItem(KEY_PAGE, String(currentPage));
   render();
 }
@@ -1035,19 +1018,26 @@ function ensureRowObject(i){
   flights[i] = {
     id: Date.now() + Math.floor(Math.random()*100000),
     date:"", depPlace:"", out:"", arrPlace:"", in:"",
-    acType:"", acReg:"", name:"SELF",
+    acType:"", acReg:"", name:"",   // ✅ WAS "name"
     total:"",
-    ldgDay:"0", ldgNight:"0",
+    ldgDay:"", ldgNight:"",         // ✅ WAS "0"
     night:"", ifr:"", pic:"", cop:"", dual:"", fi:"",
     simDate:"", simType:"", simTotal:"",
     remarks:""
   };
 }
-
 function onCell(i, key, value){
-  ensureRowObject(i);
-  const f = flights[i];
+  let f = flights[i];
 
+// ✅ If row is empty and user types nothing meaningful, DO NOT create object
+if(!f){
+  const v = String(value || "").trim();
+  if(!v) return; // nothing typed -> keep placeholder row truly empty
+
+  // only create object if user actually typed something
+  ensureRowObject(i);
+  f = flights[i];
+}
   f[key] = up(value);
 
   if(key==="out" || key==="in"){
@@ -1185,8 +1175,7 @@ sortAllFlights();  }
       '<td>'+cellInput(idx,"in", v("in"), "HHMM", "time")+'</td>'+
       '<td>'+cellInput(idx,"acType", v("acType"), "B781", "upper")+'</td>'+
       '<td>'+cellInput(idx,"acReg", v("acReg"), "B-17806", "upper")+'</td>'+
-      '<td>'+cellInput(idx,"name", v("name"), "SELF", "upper")+'</td>'+
-
+      '<td>'+cellInput(idx,"name", v("name"), (flights[idx] ? "SELF" : ""), "upper")
       '<td>'+cellInput(idx,"total", v("total"), "H:MM", "")+'</td>'+
       '<td>'+cellInput(idx,"ldgDay", v("ldgDay"), "0", "small")+'</td>'+
       '<td>'+cellInput(idx,"ldgNight", v("ldgNight"), "0", "small")+'</td>'+
@@ -1385,9 +1374,6 @@ function saveFromModal(){
   if(!placed){
   // page is full (no empty slots). Only then allow next page.
   // But also ensure the page is COMPLETE (not partial rows).
-  if(!pageIsComplete(currentPage)){
-    alert("THIS PAGE HAS INCOMPLETE ROWS. COMPLETE ALL 10 ROWS BEFORE ADDING A NEW PAGE.");
-    return;
   }
 
   setPage(currentPage + 1);
