@@ -812,6 +812,65 @@ function calcBlock(outHHMM, inHHMM){
   if(i<o) i += 1440;
   return i-o;
 }
+
+  /* =========================
+   Date + Sorting Logic
+   ========================= */
+
+function parseDateDDMMYY(s){
+  const t = String(s||"").trim();
+  const m = t.match(/^(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?$/);
+  if(!m) return null;
+
+  const dd = parseInt(m[1],10);
+  const mm = parseInt(m[2],10);
+  let yy = m[3] ? parseInt(m[3],10) : new Date().getFullYear();
+
+  if(yy < 100) yy = 2000 + yy;
+
+  return yy*10000 + mm*100 + dd;
+}
+
+function isRealFlightRow(f){
+  const hasDate = !!String(f?.date||"").trim();
+  const core =
+    String(f?.depPlace||"").trim() ||
+    String(f?.arrPlace||"").trim() ||
+    String(f?.out||"").trim() ||
+    String(f?.in||"").trim() ||
+    String(f?.acType||"").trim() ||
+    String(f?.acReg||"").trim() ||
+    String(f?.total||"").trim();
+  return hasDate && !!core;
+}
+
+function flightSortKey(f){
+  const d = parseDateDDMMYY(f?.date);
+  const out = parseInt(String(f?.out||"").replace(/\D/g,""),10);
+  return [
+    d ?? 99999999,
+    Number.isFinite(out) ? out : 9999
+  ];
+}
+
+function sortAllFlights(){
+  const real = flights.filter(x => x && isRealFlightRow(x));
+
+  real.sort((a,b)=>{
+    const ka = flightSortKey(a);
+    const kb = flightSortKey(b);
+    if(ka[0] !== kb[0]) return ka[0] - kb[0];
+    if(ka[1] !== kb[1]) return ka[1] - kb[1];
+    return (a.id||0) - (b.id||0);
+  });
+
+  const pages = Math.max(1, Math.ceil(real.length / ROWS_PER_PAGE));
+  const totalSlots = pages * ROWS_PER_PAGE;
+
+  flights = Array.from({length: totalSlots}, (_,i)=> real[i] || null);
+
+  saveJSON(KEY_FLIGHTS, flights);
+}
 function up(s){ return (s||"").toUpperCase(); }
 
 function isTimeHM(s){
@@ -975,11 +1034,12 @@ function onCellKeyDown(e, i, key, el){
 
 function clearRow(index){
   if(!confirm("CLEAR THIS ROW?")) return;
+
   flights[index] = null;
-  saveJSON(KEY_FLIGHTS, flights);
+
+  sortAllFlights();
   render();
 }
-
 /* =========================
    Focus first empty row (after Save)
    ========================= */
@@ -1024,8 +1084,8 @@ function render(){
 
   if (flights.length < end) {
     for (let i = flights.length; i < end; i++) flights.push(null);
-    saveJSON(KEY_FLIGHTS, flights);
-  }
+saveJSON(KEY_FLIGHTS, flights);
+sortAllFlights();  }
 
   let sum = {
     total:0,
