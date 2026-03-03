@@ -830,18 +830,31 @@ function onCell(i, key, value){
   render();
 }
 
-function onCellBlur(i, key, el){
-  function onCell(i, key, value){
+function ensureRowObject(i){
+  if (flights[i]) return;
+  flights[i] = {
+    id: Date.now() + Math.floor(Math.random()*100000),
+    date:"", depPlace:"", out:"", arrPlace:"", in:"",
+    acType:"", acReg:"", name:"SELF",
+    total:"",
+    ldgDay:"0", ldgNight:"0",
+    night:"", ifr:"", pic:"", cop:"", dual:"", fi:"",
+    simDate:"", simType:"", simTotal:"",
+    remarks:""
+  };
+}
+
+// Only create a row when DATE or DEP/ARR is entered.
+// Ignore edits in PIC/LDG/etc until the row exists.
+function onCell(i, key, value){
   const createKeys = ["date","depPlace","arrPlace","out","in"];
 
-  // If row doesn't exist yet: only allow creating it from Date / Dep / Arr fields
+  // ignore typing into non-create columns until flight exists
   if(!flights[i] && !createKeys.includes(key)){
-    // ignore edits in NAME / LDG / PIC / etc until flight exists
-    render(); 
     return;
   }
 
-  // Create row ONLY when Date or Dep/Arr is entered
+  // create the row only when user edits date/dep/arr/out/in
   if(!flights[i] && createKeys.includes(key)){
     ensureRowObject(i);
   }
@@ -851,24 +864,29 @@ function onCellBlur(i, key, el){
 
   f[key] = up(value);
 
+  // keep out/in as digits
   if(key==="out" || key==="in"){
     const digits = String(f[key]||"").replace(/[^0-9]/g,"");
-    if(digits) f[key] = digits;
+    f[key] = digits;
   }
 
+  // auto-calc block + autofill total/ifr/pic if empty
   if(key==="out" || key==="in"){
     const block = calcBlock(f.out, f.in);
     if(block!==null){
       const blockStr = fmtMins(block);
       if(!f.total) f.total = blockStr;
-      if(!f.ifr) f.ifr = blockStr;
-      if(!f.pic) f.pic = blockStr;
+      if(!f.ifr)   f.ifr   = blockStr;
+      if(!f.pic)   f.pic   = blockStr;
     }
   }
 
   saveJSON(KEY_FLIGHTS, flights);
   render();
 }
+
+function onCellBlur(i, key, el){
+  el.value = up(el.value);
 
   if(TIME_KEYS.includes(key)){
     const norm = normalizeHM(el.value);
@@ -882,6 +900,22 @@ function onCellBlur(i, key, el){
   }
 
   onCell(i, key, el.value);
+}
+
+function onCellKeyDown(e, i, key, el){
+  if(e.key !== "Tab") return;
+  const empty = !String(el.value||"").trim();
+  if(empty && TIME_KEYS.includes(key) && isTimeHM(_lastTimeValue)){
+    el.value = _lastTimeValue;
+    onCell(i, key, el.value);
+  }
+}
+
+function clearRow(index){
+  if(!confirm("CLEAR THIS ROW?")) return;
+  flights[index] = null;
+  saveJSON(KEY_FLIGHTS, flights);
+  render();
 }
 
 function onCellKeyDown(e, i, key, el){
@@ -1100,7 +1134,16 @@ function openModal(){
   clearModalFields();
   document.getElementById("overlay").classList.add("open");
   renderAttachPreview();
+  
+function closeModal(){
+  document.getElementById("overlay").classList.remove("open");
+}
 
+function overlayClick(e){
+  if(e.target && e.target.id === "overlay"){
+    closeModal();
+  }
+}
   // small delay so modal animation finishes
   setTimeout(() => {
     const dateField = document.getElementById("f_date");
@@ -1190,11 +1233,7 @@ function saveFromModal(){
 /* =========================
    Attachments (local preview only)
    ========================= */
-document.getElementById("photoInput").addEventListener("change", (e)=>{
 
-/* =========================
-   Attachments (local preview only)
-   ========================= */
 document.getElementById("photoInput").addEventListener("change", (e)=>{
   const file = e.target.files && e.target.files[0];
   if(!file) return;
