@@ -1135,30 +1135,33 @@ function openModal(){
   document.getElementById("overlay").classList.add("open");
   renderAttachPreview();
   
+/* =========================
+   Modal behavior
+   ========================= */
 function closeModal(){
   document.getElementById("overlay").classList.remove("open");
 }
 
 function overlayClick(e){
-  if(e.target && e.target.id === "overlay"){
-    closeModal();
-  }
+  if(e.target && e.target.id === "overlay") closeModal();
 }
-  // small delay so modal animation finishes
+
+function openModal(){
+  clearModalFields();
+  document.getElementById("overlay").classList.add("open");
+  renderAttachPreview();
+
   setTimeout(() => {
     const dateField = document.getElementById("f_date");
-    if(dateField){
-      dateField.focus();
-      dateField.select();
-    }
+    if(dateField){ dateField.focus(); dateField.select(); }
   }, 120);
 }
 
 /* =========================
-   Add flight (first empty row on current page, else next page)
+   Add flight
    ========================= */
 function saveFromModal(){
-  const get = id => up(document.getElementById(id).value.trim());
+  const get = id => up((document.getElementById(id).value || "").trim());
 
   const out = String(get("f_out")).replace(/[^0-9]/g,"");
   const inn = String(get("f_in")).replace(/[^0-9]/g,"");
@@ -1168,6 +1171,13 @@ function saveFromModal(){
   const total = normalizeHM(get("f_total")) || blockStr;
   const ifr   = normalizeHM(get("f_ifr")) || total;
   const pic   = normalizeHM(get("f_pic")) || total;
+
+  // IMPORTANT: only save if flight actually exists (DATE or DEP/ARR entered)
+  const hasCore = !!(get("f_date") || get("f_dep") || get("f_arr"));
+  if(!hasCore){
+    alert("ENTER DATE OR DEP/ARR BEFORE SAVING.");
+    return;
+  }
 
   const row = {
     id: Date.now() + Math.floor(Math.random()*100000),
@@ -1181,8 +1191,8 @@ function saveFromModal(){
     name: get("f_name") || "SELF",
 
     total: total,
-    ldgDay: String(document.getElementById("f_ldg_day").value || "0").trim(),
-    ldgNight: String(document.getElementById("f_ldg_night").value || "0").trim(),
+    ldgDay: String((document.getElementById("f_ldg_day").value || "0")).trim(),
+    ldgNight: String((document.getElementById("f_ldg_night").value || "0")).trim(),
 
     night: normalizeHM(get("f_night")),
     ifr: ifr,
@@ -1199,10 +1209,13 @@ function saveFromModal(){
     remarks: get("f_rem")
   };
 
+  // place into first empty row on current page
   const start = (currentPage - 1) * ROWS_PER_PAGE;
   const end = start + ROWS_PER_PAGE;
 
-  if (flights.length < end) for (let i = flights.length; i < end; i++) flights.push(null);
+  if (flights.length < end){
+    for (let i = flights.length; i < end; i++) flights.push(null);
+  }
 
   let placed = false;
   for(let i=start; i<end; i++){
@@ -1213,23 +1226,26 @@ function saveFromModal(){
     }
   }
 
+  // do NOT auto-move to next page (keeps your “fill this page first” rule)
   if(!placed){
-    setPage(currentPage + 1);
-    const newStart = (currentPage - 1) * ROWS_PER_PAGE;
-    const newEnd = newStart + ROWS_PER_PAGE;
-    if (flights.length < newEnd) for (let i = flights.length; i < newEnd; i++) flights.push(null);
-    flights[newStart] = row;
+    alert("THIS PAGE IS FULL. GO TO NEXT PAGE TO ADD MORE FLIGHTS.");
+    return;
   }
 
   if(isTimeHM(row.total)) _lastTimeValue = row.total;
   if(isTimeHM(row.simTotal)) _lastTimeValue = row.simTotal;
 
-    saveJSON(KEY_FLIGHTS, flights);
-  closeModal();
-  clearModalFields(); // ensures next open is fresh
-  render();
-} // <-- IMPORTANT: this closes saveFromModal()
+  saveJSON(KEY_FLIGHTS, flights);
 
+  closeModal();
+  clearModalFields();
+  render();
+
+  // optional: jump cursor to first empty row after save
+  if(typeof focusFirstEmptyRow === "function"){
+    setTimeout(focusFirstEmptyRow, 120);
+  }
+}
 /* =========================
    Attachments (local preview only)
    ========================= */
