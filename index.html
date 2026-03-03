@@ -2,1109 +2,1278 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MARA Pilot Logbook</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Mara Pilot Logbook</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1a33">
+
+  <!-- iOS Home Screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mara Logbook">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
   <style>
     :root{
-      --bg0:#071424;
-      --bg1:#0b1b31;
-      --panel:rgba(255,255,255,.06);
-      --panel2:rgba(255,255,255,.08);
-      --text:#eaf1ff;
-      --muted:rgba(234,241,255,.62);
-      --grid:rgba(234,241,255,.12);
-      --accent:#d5b65a;
-      --danger:#ff6b6b;
-      --ok:#2dd4bf;
-      --radius:18px;
+      --bg:#071326;
+      --panel:rgba(10,24,50,.72);
+      --panel2:rgba(10,24,50,.55);
+      --ink:#eaf0ff;
+      --muted:rgba(234,240,255,.72);
+      --line:rgba(234,240,255,.10);
+      --line2:rgba(234,240,255,.06);
+
+      --gold:#d9bb62;
+      --gold2:#caa84a;
+
+      --danger:#d06b5f;
+      --ok:#59c18d;
+
+      --thead:rgba(8,20,45,.72);
+      --row:rgba(255,255,255,.02);
+      --rowAlt:rgba(255,255,255,.035);
+      --rowHover:rgba(217,187,98,.08);
+
+      --shadow:0 24px 80px rgba(0,0,0,.35);
+      --totals-accent:var(--gold);
     }
-    [data-theme="light"]{
-      --bg0:#eef2f7;
-      --bg1:#f7f9fc;
-      --panel:rgba(0,0,0,.05);
-      --panel2:rgba(0,0,0,.07);
-      --text:#0b1220;
-      --muted:rgba(11,18,32,.62);
-      --grid:rgba(11,18,32,.12);
-      --accent:#b08a1e;
+
+    body.light{
+      --bg:#eef3ff;
+      --panel:rgba(255,255,255,.92);
+      --panel2:rgba(255,255,255,.82);
+      --ink:#0b1a33;
+      --muted:rgba(11,26,51,.70);
+      --line:rgba(11,26,51,.12);
+      --line2:rgba(11,26,51,.06);
+
+      --gold:#d9bb62;
+      --gold2:#caa84a;
+      --totals-accent:var(--gold);
+
+      --thead:rgba(234,241,255,.95);
+      --row:rgba(255,255,255,.98);
+      --rowAlt:rgba(245,248,255,.98);
+      --rowHover:rgba(217,187,98,.10);
+
+      --shadow:0 24px 70px rgba(10,25,60,.12);
     }
 
     *{box-sizing:border-box}
+    html,body{height:100%}
     body{
       margin:0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      color:var(--text);
+      font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
       background:
-        radial-gradient(1200px 600px at 25% 10%, rgba(255,255,255,.12), transparent 60%),
-        radial-gradient(900px 480px at 80% 0%, rgba(213,182,90,.10), transparent 55%),
-        linear-gradient(180deg, var(--bg1), var(--bg0) 60%);
-      min-height:100vh;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
+        radial-gradient(1200px 600px at 20% 15%, rgba(14,60,120,.25), transparent 55%),
+        radial-gradient(1000px 550px at 80% 20%, rgba(30,80,170,.18), transparent 58%),
+        radial-gradient(900px 700px at 60% 80%, rgba(0,0,0,.35), transparent 60%),
+        var(--bg);
+      color:var(--ink);
+      overflow-x:hidden;
+      -webkit-text-size-adjust: 100%;
     }
 
-    .wrap{max-width:1400px; margin:0 auto; padding:18px 18px 28px;}
+    .app{max-width:1500px;margin:0 auto;padding:18px 14px 30px}
+
+    /* ===== header ===== */
     .topbar{
-      display:flex; align-items:flex-start; justify-content:space-between; gap:14px;
-      margin-bottom:14px;
-    }
-    .brand{
-      display:flex; gap:12px; align-items:flex-start; min-width:240px;
-    }
-    .brand .logo{
-      width:22px; height:22px; border-radius:6px;
-      background:linear-gradient(135deg, rgba(255,255,255,.18), rgba(213,182,90,.22));
-      border:1px solid var(--grid);
-      margin-top:2px;
-    }
-    .brand h1{font-size:18px; margin:0; letter-spacing:.18em; font-weight:800;}
-    .brand small{display:block; margin-top:4px; color:var(--muted); letter-spacing:.22em; font-size:11px; font-weight:600;}
-
-    .stats{
-      flex:1;
-      display:grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap:10px;
-      align-self:stretch;
-    }
-    .stat{
-      background:var(--panel);
-      border:1px solid var(--grid);
+      position:sticky;top:10px;z-index:50;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      border:1px solid var(--line2);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.01));
+      backdrop-filter:blur(12px);
       border-radius:16px;
-      padding:10px 12px;
-      backdrop-filter: blur(8px);
-      min-height:56px;
-      display:flex; flex-direction:column; justify-content:center; align-items:center;
-    }
-    .stat .val{font-size:28px; font-weight:900; color:var(--accent); letter-spacing:.04em;}
-    .stat .lab{margin-top:2px; font-size:11px; letter-spacing:.24em; color:var(--muted); font-weight:700;}
-
-    .actions{
-      display:flex; gap:10px; align-items:center; justify-content:flex-end;
-      min-width:330px;
-    }
-    .pill{
-      display:flex; align-items:center; gap:10px;
-      background:var(--panel);
-      border:1px solid var(--grid);
-      border-radius:999px;
-      padding:8px 10px;
-      backdrop-filter: blur(8px);
-      user-select:none;
-      min-height:42px;
-    }
-    .pill .btn{
-      border:0; outline:0;
-      background:transparent;
-      color:var(--text);
-      font-weight:800;
-      width:34px; height:28px;
-      border-radius:999px;
-      cursor:pointer;
-    }
-    .pill .btn:active{transform:scale(.98)}
-    .pill .label{font-weight:800; letter-spacing:.12em; font-size:12px; color:var(--muted); padding:0 6px; white-space:nowrap;}
-
-    .toggle{
-      background:var(--panel);
-      border:1px solid var(--grid);
-      border-radius:999px;
-      padding:8px 12px;
-      display:flex; align-items:center; gap:8px;
-      font-weight:800;
-      letter-spacing:.12em;
-      cursor:pointer;
-      min-height:42px;
-      user-select:none;
+      padding:14px 14px;
+      box-shadow:var(--shadow);
     }
 
-    .cta{
-      border:0;
-      background:var(--accent);
-      color:#0b1220;
-      font-weight:900;
-      letter-spacing:.14em;
-      border-radius:999px;
-      padding:12px 16px;
-      cursor:pointer;
-      min-height:42px;
-    }
-    .cta:active{transform:scale(.99)}
-    .ghost{
-      border:1px solid var(--grid);
-      background:var(--panel);
-      color:var(--text);
-      font-weight:900;
-      letter-spacing:.14em;
-      border-radius:999px;
-      padding:12px 14px;
-      cursor:pointer;
-      min-height:42px;
-      backdrop-filter: blur(8px);
-    }
-
-    .subbar{
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-      margin-top:14px;
-      padding:10px 12px;
-      border-top:1px solid var(--grid);
-      border-bottom:1px solid var(--grid);
-      color:var(--muted);
-      letter-spacing:.18em;
-      font-size:11px;
-      font-weight:800;
-      text-transform:uppercase;
-    }
-    .subbar .left{display:flex; gap:10px; align-items:center;}
-    .subbar .badge{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:6px 10px;
-      border:1px solid var(--grid);
-      border-radius:999px;
-      background:var(--panel);
-      color:var(--text);
-      letter-spacing:.14em;
-      font-size:11px;
-    }
-
-    .tableWrap{
-      margin-top:12px;
-      border:1px solid var(--grid);
-      border-radius:22px;
-      overflow:hidden;
-      background:var(--panel);
-      backdrop-filter: blur(10px);
-    }
-
-    .grid{
-      width:100%;
-      border-collapse:separate;
-      border-spacing:0;
-      min-width:1200px;
-    }
-    .thead th{
-      position:sticky;
-      top:0;
-      background:rgba(0,0,0,.12);
-      backdrop-filter: blur(10px);
-      color:var(--muted);
-      font-size:11px;
-      letter-spacing:.22em;
-      text-transform:uppercase;
-      font-weight:900;
-      padding:12px 10px;
-      border-bottom:1px solid var(--grid);
-      border-right:1px solid var(--grid);
-      text-align:center;
-      white-space:nowrap;
-    }
-    [data-theme="light"] .thead th{
-      background:rgba(255,255,255,.6);
-    }
-
-    .tbody td{
-      padding:12px 10px;
-      border-bottom:1px solid var(--grid);
-      border-right:1px solid var(--grid);
-      text-align:center;
-      font-weight:800;
-      letter-spacing:.08em;
-      font-size:12px;
-      color:var(--text);
-      white-space:nowrap;
-    }
-    .tbody tr:hover td{background:rgba(255,255,255,.03)}
-    [data-theme="light"] .tbody tr:hover td{background:rgba(0,0,0,.03)}
-    .tbody td.muted{color:rgba(234,241,255,.42)}
-    [data-theme="light"] .tbody td.muted{color:rgba(11,18,32,.35)}
-    .tbody td input{
-      width:100%;
-      background:transparent;
-      border:0;
-      color:var(--text);
-      font-weight:900;
-      letter-spacing:.06em;
-      font-size:12px;
-      text-align:center;
-      outline:none;
-      padding:2px 4px;
-    }
-    .tbody td input::placeholder{color:rgba(234,241,255,.30)}
-    [data-theme="light"] .tbody td input::placeholder{color:rgba(11,18,32,.30)}
-    .tbody td .del{
-      border:1px solid var(--grid);
-      background:transparent;
-      color:var(--text);
-      border-radius:10px;
-      padding:6px 10px;
-      cursor:pointer;
-      font-weight:900;
-      letter-spacing:.14em;
-    }
-    .tbody td .del:active{transform:scale(.98)}
-
-    .tfoot td{
-      padding:12px 10px;
-      border-top:1px solid var(--grid);
-      border-right:1px solid var(--grid);
-      text-align:center;
-      font-weight:900;
-      letter-spacing:.16em;
-      font-size:12px;
-      white-space:nowrap;
-    }
-    .tfoot tr td:first-child{
-      text-align:left;
-      color:var(--accent);
-      background:rgba(0,0,0,.08);
-      text-transform:uppercase;
-    }
-    [data-theme="light"] .tfoot tr td:first-child{
-      background:rgba(255,255,255,.65);
-    }
-    .tfoot .val{color:var(--accent); font-weight:1000;}
-
-    .scrollX{
-      overflow:auto;
-      -webkit-overflow-scrolling:touch;
-    }
-
-    /* Modal */
-    .modal{
-      position:fixed; inset:0;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:18px;
-      background:rgba(0,0,0,.55);
-      z-index:50;
-    }
-    .modal.show{display:flex;}
-    .sheet{
-      width:min(560px, 100%);
-      border-radius:22px;
-      border:1px solid var(--grid);
-      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
-      backdrop-filter: blur(16px);
-      padding:14px;
-      box-shadow: 0 18px 60px rgba(0,0,0,.35);
-    }
-    .sheet h3{margin:2px 0 10px; font-size:15px; letter-spacing:.10em;}
-    .row{display:flex; gap:10px; flex-wrap:wrap;}
-    .col{flex:1; min-width:160px;}
-    .field{
-      border:1px solid var(--grid);
-      border-radius:14px;
-      background:var(--panel);
-      padding:10px 10px;
-      margin:8px 0;
-    }
-    .field label{
-      display:block;
-      font-size:11px;
-      color:var(--muted);
-      letter-spacing:.18em;
-      font-weight:900;
-      text-transform:uppercase;
-      margin-bottom:6px;
-    }
-    .field input, .field select{
-      width:100%;
-      border:0; outline:0;
-      background:transparent;
-      color:var(--text);
-      font-weight:900;
-      letter-spacing:.06em;
-      font-size:14px;
-    }
-    .opts label{
-      display:flex; align-items:center; gap:10px;
-      font-weight:900; letter-spacing:.06em;
-      padding:8px 6px;
-      cursor:pointer;
-    }
-    .opts input{transform:scale(1.2)}
-    .sheet .bar{
-      display:flex; justify-content:flex-end; gap:10px; margin-top:10px;
-    }
-    .sheet button{
-      border-radius:999px;
-      padding:12px 14px;
-      min-height:42px;
+    .brand{display:flex;flex-direction:column;gap:4px;min-width:220px;max-width:520px}
+    .brand .title{
+      display:flex;align-items:center;gap:10px;
       font-weight:1000;
-      letter-spacing:.14em;
-      cursor:pointer;
-      border:1px solid var(--grid);
-      background:var(--panel);
-      color:var(--text);
+      line-height:1.1;
+      letter-spacing:4px;
+      text-transform:uppercase;
+      white-space:nowrap;
+      font-size:clamp(16px, 2.2vw, 19px); /* fixes “too big / too small” across iPad */
     }
-    .sheet button.primary{
-      background:var(--accent);
-      color:#0b1220;
-      border:0;
+    .brand .sub{
+      font-size:11px;
+      letter-spacing:3px;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:1000;
     }
 
-    /* iPad friendliness */
-    @media (max-width: 980px){
-      .stats{grid-template-columns: repeat(2, minmax(0, 1fr));}
-      .actions{min-width:unset; flex-wrap:wrap; justify-content:flex-end;}
-      .brand{min-width:unset;}
+    .kpis{
+      display:flex;align-items:center;justify-content:center;
+      gap:14px;flex:1;flex-wrap:wrap;min-width:320px;
+    }
+    .kpi{
+      min-width:150px;text-align:center;
+      padding:10px 12px;border-radius:14px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--line2);
+    }
+    .kpi .v{
+      font-weight:1000;
+      font-size:22px;
+      letter-spacing:1px;
+      color:var(--gold);
+      font-variant-numeric:tabular-nums;
+    }
+    .kpi .l{
+      margin-top:3px;
+      font-size:11px;
+      letter-spacing:3px;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:1000;
+    }
+
+    .actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .btn{
+      border-radius:999px;border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--ink);
+      padding:10px 14px;
+      font-weight:1000;
+      font-size:12px;
+      letter-spacing:1px;
+      cursor:pointer;
+      transition:transform .12s, background .12s, border-color .12s, opacity .12s;
+      white-space:nowrap;
+      text-transform:uppercase;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:hover{transform:translateY(-1px);border-color:rgba(217,187,98,.35)}
+    .btn:active{transform:translateY(0);opacity:.9}
+    .btn.gold{background:linear-gradient(180deg,var(--gold),var(--gold2));color:#1b1b1b;border-color:transparent}
+    .btn.danger{background:rgba(208,107,95,.12);border-color:rgba(208,107,95,.30);color:var(--danger)}
+    .btn.ok{background:rgba(89,193,141,.12);border-color:rgba(89,193,141,.30);color:var(--ok)}
+    .btn.small{padding:9px 12px;min-width:44px}
+
+    /* ===== panels ===== */
+    .panel{
+      margin-top:14px;border-radius:16px;overflow:hidden;
+      border:1px solid var(--line2);
+      background:var(--panel);
+      box-shadow:var(--shadow);
+    }
+    .panel-h{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:12px 14px;gap:10px;flex-wrap:wrap;
+      background:linear-gradient(180deg, rgba(255,255,255,.06), transparent);
+      border-bottom:1px solid var(--line2);
+    }
+    .panel-h .left{
+      display:flex;align-items:center;gap:10px;
+      font-weight:1000;letter-spacing:3px;text-transform:uppercase;
+      font-size:12px;color:var(--muted);white-space:nowrap;
+    }
+    .panel-h .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+
+    /* ===== prev totals fields ===== */
+    .prev-grid{
+      padding:14px;
+      display:grid;
+      grid-template-columns:repeat(5, minmax(0,1fr));
+      gap:12px;
+    }
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field label{
+      font-size:10px;letter-spacing:3px;text-transform:uppercase;
+      color:var(--muted);font-weight:1000;
+    }
+    .field input{
+      height:40px;border-radius:12px;border:1px solid var(--line2);
+      background:rgba(255,255,255,.02);
+      color:var(--ink);
+      padding:10px 12px;
+      font-weight:1000;
+      outline:none;
+      font-variant-numeric:tabular-nums;
+      text-transform:uppercase;
+    }
+    body.light .field input{background:rgba(255,255,255,.92)}
+    .field input:focus{border-color:rgba(217,187,98,.45)}
+
+    /* ===== table ===== */
+    .table-wrap{width:100%;overflow:auto;background:var(--panel2); -webkit-overflow-scrolling:touch;}
+    table{
+      width:100%;
+      min-width:1720px;
+      table-layout:fixed;
+      border-collapse:collapse;
+      font-size:11px;
+      font-variant-numeric:tabular-nums;
+    }
+    th,td{
+      border:1px solid var(--line2);
+      padding:8px 6px;
+      text-align:center;
+      vertical-align:middle;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:clip;
+    }
+    thead th{
+      background:var(--thead);
+      color:var(--muted);
+      font-weight:1000;
+      text-transform:uppercase;
+      letter-spacing:2px;
+      font-size:10px;
+    }
+    thead tr:nth-child(2) th{
+      font-size:9px;
+      letter-spacing:1px;
+      color:var(--muted);
+    }
+    tbody tr{background:var(--row)}
+    tbody tr:nth-child(even){background:var(--rowAlt)}
+    tbody tr:hover{background:var(--rowHover)}
+
+    input, textarea, select{ text-transform:uppercase; }
+
+    .cell{
+      width:100%;
+      border:none;outline:none;
+      background:transparent;color:var(--ink);
+      font-weight:1000;
+      text-align:center;
+      font-size:11px;
+      padding:2px 0;
+      text-transform:uppercase;
+    }
+    .cell::placeholder{color:rgba(160,180,220,.55);font-weight:900}
+    body.light .cell::placeholder{color:rgba(90,110,150,.55)}
+    .upper{letter-spacing:1px}
+    .time{letter-spacing:1px}
+    .small{font-size:10px}
+    .cell:focus{background:rgba(217,187,98,.10);border-radius:8px}
+
+    /* totals rows */
+    tfoot td{background:rgba(255,255,255,.03);color:var(--muted);font-weight:1000}
+    .tfLabel{
+      text-align:left;padding-left:10px;
+      letter-spacing:3px;text-transform:uppercase;
+      color:var(--muted);font-size:10px;
+    }
+    .total-this td, .total-prev td{
+      color:var(--totals-accent);
+      background:rgba(217,187,98,.06);
+    }
+    .total-this .tfLabel, .total-prev .tfLabel{color:var(--totals-accent)}
+    .grand td{
+      border-top:2px solid rgba(217,187,98,.25);
+      background:rgba(217,187,98,.10);
+      color:var(--totals-accent);
+      font-size:12px;
+    }
+
+    .del{
+      border-radius:10px;border:1px solid rgba(208,107,95,.35);
+      background:rgba(208,107,95,.12);
+      color:var(--danger);
+      cursor:pointer;font-weight:1000;
+      padding:6px 10px;text-transform:uppercase;
+    }
+
+    /* ===== modal ===== */
+    .overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.45);
+      display:none;align-items:center;justify-content:center;
+      padding:14px;z-index:100;backdrop-filter:blur(12px);
+    }
+    .overlay.open{display:flex}
+    .modal{
+      width:min(980px,100%);
+      border-radius:18px;overflow:hidden;
+      border:1px solid var(--line2);
+      background:var(--panel);
+      box-shadow:var(--shadow);
+      max-height:calc(100vh - 28px);
+      display:flex;flex-direction:column;
+    }
+    .modal-h{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:14px 16px;border-bottom:1px solid var(--line2);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), transparent);
+      flex:0 0 auto;
+    }
+    .modal-h .t{
+      font-weight:1000;letter-spacing:3px;text-transform:uppercase;color:var(--muted);
+      display:flex;align-items:center;gap:10px;
+    }
+    .modal-b{
+      padding:14px 16px;
+      display:grid;grid-template-columns:1fr 1fr;gap:12px;
+      overflow:auto;-webkit-overflow-scrolling:touch;
+      flex:1 1 auto;
+    }
+    .scanRow{grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap}
+    .scanBtn{
+      flex:1;min-width:280px;
+      border-radius:16px;padding:14px 14px;
+      border:2px dashed rgba(118,169,255,.35);
+      background:rgba(118,169,255,.08);
+      color:var(--ink);
+      font-weight:1000;letter-spacing:2px;text-transform:uppercase;
+      cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:10px;
+    }
+    .scanBtn.pdf{border-color:rgba(89,193,141,.35);background:rgba(89,193,141,.08)}
+    .fileHidden{display:none}
+    .hint{
+      grid-column:1/-1;border:1px dashed var(--line);
+      border-radius:14px;padding:10px 12px;
+      color:var(--muted);font-size:12px;line-height:1.35;
+      background:rgba(255,255,255,.03);
+      text-transform:none;
+    }
+    .hint b{text-transform:uppercase}
+    .preview{
+      grid-column:1/-1;border-radius:14px;overflow:hidden;
+      border:1px solid var(--line2);
+      background:rgba(0,0,0,.08);
+      display:none;max-height:240px;
+    }
+    .preview img{width:100%;display:block}
+    .modal-actions{
+      grid-column:1/-1;
+      position:sticky;bottom:0;
+      display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;
+      padding:12px 0 6px;margin-top:6px;
+      background:linear-gradient(180deg, transparent, rgba(0,0,0,.18));
+    }
+    body.light .modal-actions{background:linear-gradient(180deg, transparent, rgba(255,255,255,.92))}
+
+    @media (max-width:1100px){.kpis{display:none}}
+    @media (max-width:980px){
+      .prev-grid{grid-template-columns:1fr 1fr}
+      .modal-b{grid-template-columns:1fr}
+      table{min-width:1600px}
+    }
+
+    @media print{
+      .topbar,.panel-h .right,.del,.overlay{display:none !important}
+      body{background:#fff}
+      .panel{box-shadow:none;background:#fff}
+      @page{size:A4 landscape;margin:10mm}
     }
   </style>
 </head>
 
 <body>
-  <div class="wrap" id="app">
+  <div class="app">
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+      }
+    </script>
+
+    <!-- TOPBAR -->
     <div class="topbar">
       <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div>
-          <h1>MARA PILOT LOGBOOK</h1>
-          <small>FLIGHT RECORD SYSTEM</small>
-        </div>
+        <div class="title">✈ MARA PILOT LOGBOOK</div>
+        <div class="sub">FLIGHT RECORD SYSTEM</div>
       </div>
 
-      <div class="stats" aria-label="Totals">
-        <div class="stat">
-          <div class="val" id="statTotal">0:00</div>
-          <div class="lab">TOTAL TIME</div>
-        </div>
-        <div class="stat">
-          <div class="val" id="statPIC">0:00</div>
-          <div class="lab">PIC TIME</div>
-        </div>
-        <div class="stat">
-          <div class="val" id="statNight">0:00</div>
-          <div class="lab">NIGHT</div>
-        </div>
-        <div class="stat">
-          <div class="val" id="statIFR">0:00</div>
-          <div class="lab">IFR</div>
-        </div>
+      <div class="kpis">
+        <div class="kpi"><div class="v" id="k_total">0:00</div><div class="l">TOTAL TIME</div></div>
+        <div class="kpi"><div class="v" id="k_pic">0:00</div><div class="l">PIC TIME</div></div>
+        <div class="kpi"><div class="v" id="k_night">0:00</div><div class="l">NIGHT</div></div>
+        <div class="kpi"><div class="v" id="k_ifr">0:00</div><div class="l">IFR</div></div>
       </div>
 
       <div class="actions">
-        <div class="pill" title="Page navigation">
-          <button class="btn" id="prevBtn" aria-label="Previous page">‹</button>
-          <div class="label"><span id="pageLabel">PAGE 1 / 1</span></div>
-          <button class="btn" id="nextBtn" aria-label="Next page">›</button>
-        </div>
+        <button class="btn small" type="button" onclick="setPage(currentPage-1)">◀</button>
+        <button class="btn" type="button" id="pageLabel" style="min-width:130px">PAGE 1 / 1</button>
+        <button class="btn small" type="button" onclick="setPage(currentPage+1)">▶</button>
 
-        <div class="toggle" id="themeBtn" title="Toggle theme">
-          <span id="themeText">LIGHT</span>
-        </div>
-
-        <button class="ghost" id="printBtn">PRINT</button>
-        <button class="cta" id="addBtn">+ ADD FLIGHT</button>
+        <button class="btn" type="button" id="themeBtn" onclick="toggleTheme()">LIGHT</button>
+        <button class="btn gold" type="button" onclick="openModal()">+ ADD FLIGHT</button>
       </div>
     </div>
 
-    <div class="subbar">
-      <div class="left">
-        <span class="badge">LOGBOOK PAGE (<span id="rowsPerPageText">10</span> ROWS)</span>
+    <!-- BASE TOTALS (before page 1) -->
+    <div class="panel">
+      <div class="panel-h">
+        <div class="left">📋 BASE TOTALS (BEFORE PAGE 1)</div>
+        <div class="right">
+          <button class="btn ok" type="button" onclick="seedFromPhoto()">IMPORT (PHOTO PAGE)</button>
+          <button class="btn" type="button" onclick="exportBackup()">BACKUP</button>
+          <button class="btn" type="button" onclick="importBackup()">RESTORE</button>
+          <button class="btn" type="button" onclick="window.print()">EXPORT PDF</button>
+        </div>
       </div>
-      <div class="right">
-        AUTO-SAVED LOCALLY • WORKS OFFLINE
-      </div>
+      <div class="prev-grid" id="prevGrid"></div>
     </div>
 
-    <div class="tableWrap">
-      <div class="scrollX">
-        <table class="grid" id="grid">
-          <thead class="thead">
+    <!-- LOGBOOK TABLE -->
+    <div class="panel">
+      <div class="panel-h">
+        <div class="left">📘 LOGBOOK PAGE (10 ROWS)</div>
+        <div class="right">
+          <span style="color:var(--muted);font-weight:1000;font-size:12px;letter-spacing:1px;text-transform:uppercase;">
+            AUTO-SAVED LOCALLY • WORKS OFFLINE
+          </span>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <colgroup>
+            <col style="width:80px">
+            <col style="width:78px">
+            <col style="width:72px">
+            <col style="width:78px">
+            <col style="width:72px">
+            <col style="width:86px">
+            <col style="width:96px">
+            <col style="width:86px">
+            <col style="width:86px">
+            <col style="width:60px">
+            <col style="width:70px">
+            <col style="width:76px">
+            <col style="width:76px">
+            <col style="width:76px">
+            <col style="width:86px">
+            <col style="width:76px">
+            <col style="width:60px">
+            <col style="width:86px">
+            <col style="width:70px">
+            <col style="width:90px">
+            <col style="width:220px">
+            <col style="width:44px">
+          </colgroup>
+
+          <thead>
             <tr>
-              <th>DATE<br><span style="font-size:10px;letter-spacing:.18em;">DD.MM.YY</span></th>
-              <th>DEP<br>PLACE</th>
-              <th>DEP<br>TIME</th>
-              <th>ARR<br>PLACE</th>
-              <th>ARR<br>TIME</th>
-              <th>AIRCRAFT<br>TYPE</th>
-              <th>AIRCRAFT<br>REG</th>
-              <th>NAME(S)<br>PIC</th>
-              <th>TOTAL<br>FLIGHT</th>
-              <th>DAY<br>LDG</th>
-              <th>NIGHT<br>LDG</th>
+              <th>DATE<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">DD.MM.YY</span></th>
+              <th>DEP<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">PLACE</span></th>
+              <th>DEP<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">TIME</span></th>
+              <th>ARR<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">PLACE</span></th>
+              <th>ARR<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">TIME</span></th>
+              <th>AIRCRAFT<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">TYPE</span></th>
+              <th>AIRCRAFT<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">REG</span></th>
+              <th>NAME(S)<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">PIC</span></th>
+              <th>TOTAL<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">FLIGHT</span></th>
+              <th>DAY<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">LDG</span></th>
+              <th>NIGHT<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">LDG</span></th>
               <th>NIGHT</th>
               <th>IFR</th>
               <th>PIC</th>
-              <th>CO-PIL</th>
+              <th>CO-PILOT</th>
               <th>DUAL</th>
               <th>FI</th>
-              <th style="min-width:88px;">DEL</th>
+              <th colspan="3">FSTD SESSION</th>
+              <th>REMARKS & ENDORSEMENTS</th>
+              <th></th>
+            </tr>
+            <tr>
+              <th colspan="17"></th>
+              <th>DATE<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">DD.MM.YY</span></th>
+              <th>TYPE</th>
+              <th>TOTAL<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">SESSION</span></th>
+              <th colspan="2"></th>
             </tr>
           </thead>
-          <tbody class="tbody" id="tbody"></tbody>
-          <tbody class="tfoot" id="tfoot"></tbody>
+
+          <tbody id="tbody"></tbody>
+          <tfoot id="tfoot"></tfoot>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- PRINT MODAL (print-only settings; app stays same) -->
-  <div class="modal" id="printModal" role="dialog" aria-modal="true" aria-labelledby="printTitle">
-    <div class="sheet">
-      <h3 id="printTitle">Print (Basic EASA format)</h3>
-
-      <div class="field">
-        <label>Pages</label>
-        <div class="opts">
-          <label><input type="radio" name="printType" value="all" checked> All pages</label>
-          <label><input type="radio" name="printType" value="current"> Current page</label>
-          <label><input type="radio" name="printType" value="range"> Page range</label>
-        </div>
-
-        <div class="row" id="rangeBox" style="opacity:.9;">
-          <div class="col field" style="margin:0;">
-            <label>From</label>
-            <input type="number" id="printFrom" min="1" inputmode="numeric" />
-          </div>
-          <div class="col field" style="margin:0;">
-            <label>To</label>
-            <input type="number" id="printTo" min="1" inputmode="numeric" />
-          </div>
-        </div>
+  <!-- MODAL -->
+  <div class="overlay" id="overlay" onclick="overlayClick(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-h">
+        <div class="t">✈ NEW FLIGHT ENTRY</div>
+        <button class="btn" type="button" onclick="closeModal()">Close</button>
       </div>
 
-      <div class="row">
-        <div class="col field">
-          <label>Paper size</label>
-          <select id="paperSize">
-            <option value="A4" selected>A4</option>
-            <option value="Letter">Letter (US)</option>
-          </select>
+      <div class="modal-b">
+        <div class="scanRow">
+          <button class="scanBtn" type="button" onclick="document.getElementById('photoInput').click()">📷 PHOTO SCAN</button>
+          <button class="scanBtn pdf" type="button" onclick="document.getElementById('pdfInput').click()">📄 PDF IMPORT</button>
+          <input class="fileHidden" type="file" id="photoInput" accept="image/*">
+          <input class="fileHidden" type="file" id="pdfInput" accept="application/pdf">
         </div>
 
-        <div class="col field">
-          <label>Signature line</label>
-          <select id="sigEveryPage">
-            <option value="yes" selected>Every page</option>
-            <option value="no">No</option>
-          </select>
+        <div class="hint">
+          <b>NOTE:</b> PHOTO/PDF BUTTONS STORE A LOCAL PREVIEW REFERENCE (NO AI EXTRACTION).
         </div>
-      </div>
 
-      <div class="row">
-        <div class="col field">
-          <label>Pilot name (printed)</label>
-          <input id="pilotNameInput" placeholder="Your name" />
-        </div>
-        <div class="col field">
-          <label>Licence number (printed)</label>
-          <input id="licenceInput" placeholder="Licence No." />
-        </div>
-      </div>
+        <div class="preview" id="photoPrev"></div>
+        <div id="pdfName" style="grid-column:1/-1;color:var(--muted);font-weight:1000;letter-spacing:1px;"></div>
 
-      <div class="bar">
-        <button id="printCancel">CANCEL</button>
-        <button class="primary" id="printGo">PRINT</button>
+        <div class="field"><label>Date (DD.MM.YY)</label><input id="f_date" placeholder="23.11"></div>
+        <div class="field"><label>Name(s) PIC</label><input id="f_name" placeholder="SELF"></div>
+
+        <div class="field"><label>Dep Place (ICAO)</label><input id="f_dep" placeholder="RCTP"></div>
+        <div class="field"><label>Dep Time (HHMM)</label><input id="f_out" placeholder="1300"></div>
+
+        <div class="field"><label>Arr Place (ICAO)</label><input id="f_arr" placeholder="VTBS"></div>
+        <div class="field"><label>Arr Time (HHMM)</label><input id="f_in" placeholder="1642"></div>
+
+        <div class="field"><label>Aircraft Type</label><input id="f_type" placeholder="B781"></div>
+        <div class="field"><label>Registration</label><input id="f_reg" placeholder="B-17812"></div>
+
+        <div class="field"><label>Total Flight (H:MM)</label><input id="f_total" placeholder="AUTO"></div>
+        <div class="field"><label>Night (H:MM)</label><input id="f_night" placeholder=""></div>
+
+        <div class="field"><label>IFR (H:MM)</label><input id="f_ifr" placeholder="AUTO"></div>
+        <div class="field"><label>PIC (H:MM)</label><input id="f_pic" placeholder="AUTO"></div>
+
+        <div class="field"><label>Co-Pilot (H:MM)</label><input id="f_cop" placeholder=""></div>
+        <div class="field"><label>Dual (H:MM)</label><input id="f_dual" placeholder=""></div>
+
+        <div class="field"><label>FI (H:MM)</label><input id="f_fi" placeholder=""></div>
+        <div class="field"><label>LDG Day</label><input id="f_ldg_day" type="number" min="0" placeholder="0"></div>
+
+        <div class="field"><label>LDG Night</label><input id="f_ldg_night" type="number" min="0" placeholder="0"></div>
+        <div class="field"><label>FSTD Date (DD.MM.YY)</label><input id="f_sim_date" placeholder="29.11.25"></div>
+
+        <div class="field"><label>FSTD Type</label><input id="f_sim_type" placeholder="B789"></div>
+        <div class="field"><label>FSTD Total (H:MM)</label><input id="f_sim_total" placeholder="3:00"></div>
+
+        <div class="field" style="grid-column:1/-1"><label>Remarks & Endorsements</label><input id="f_rem" placeholder=""></div>
+
+        <div class="modal-actions">
+          <button class="btn" type="button" onclick="closeModal()">Cancel</button>
+          <button class="btn gold" type="button" onclick="saveFromModal()">Save Flight</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <script>
-    /**********************
-     *  STORAGE / MODEL
-     **********************/
-    const LS_KEY = "mara_logbook_v1";
-    const LS_THEME = "mara_theme";
-    const LS_PILOT = "mara_pilot_name";
-    const LS_LIC = "mara_licence_no";
-    const LS_BASE = "mara_base_totals"; // optional base totals (before first entry)
+<script>
+/* =========================
+   Storage + State
+   ========================= */
+const KEY_FLIGHTS = "mara_book_flights_v7";
+const KEY_PREV    = "mara_book_base_v7";
+const KEY_THEME   = "mara_book_theme_v7";
+const KEY_ATTACH  = "mara_book_attach_v7";
+const KEY_PAGE    = "mara_page_v7";
+const ROWS_PER_PAGE = 10;
 
-    const ROWS_PER_PAGE = 10;
+let currentPage = parseInt(localStorage.getItem(KEY_PAGE) || "1", 10);
+if (!currentPage || currentPage < 1) currentPage = 1;
 
-    // Flight row model:
-    // {
-    //  date, depPlace, depTime, arrPlace, arrTime, acType, acReg, picName,
-    //  total, dayLdg, nightLdg, night, ifr, pic, cop, dual, fi
-    // }
-    let flights = loadFlights();
-    let currentPage = 0;
+let flights = loadJSON(KEY_FLIGHTS, []);
+let base = loadJSON(KEY_PREV, {
+  total: "0:00",
+  night: "0:00",
+  ifr: "0:00",
+  pic: "0:00",
+  cop: "0:00",
+  dual: "0:00",
+  fi: "0:00",
+  ldg_day: "0",
+  ldg_night: "0",
+  fstd: "0:00"
+});
+let attach = loadJSON(KEY_ATTACH, { photoDataUrl: "", pdfName: "" });
 
-    // Printed metadata (not changing app UI)
-    let pilotName = localStorage.getItem(LS_PILOT) || "";
-    let licenceNumber = localStorage.getItem(LS_LIC) || "";
+function loadJSON(k, fallback){
+  try{
+    const v = localStorage.getItem(k);
+    if(!v) return fallback;
+    return JSON.parse(v);
+  }catch(e){ return fallback; }
+}
+function saveJSON(k, v){
+  try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){}
+}
 
-    // Optional base totals (for TOTAL FROM PREVIOUS PAGE on page 1)
-    let baseTotals = loadBaseTotals();
+/* =========================
+   Page
+   ========================= */
+function setPage(p){
+  currentPage = Math.max(1, p);
+  localStorage.setItem(KEY_PAGE, String(currentPage));
+  render();
+}
 
-    /**********************
-     *  UTIL
-     **********************/
-    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+/* =========================
+   Theme
+   ========================= */
+function applyTheme(mode){
+  if(mode === "light"){
+    document.body.classList.add("light");
+    document.getElementById("themeBtn").textContent = "DARK";
+  }else{
+    document.body.classList.remove("light");
+    document.getElementById("themeBtn").textContent = "LIGHT";
+  }
+  localStorage.setItem(KEY_THEME, mode);
+}
+function toggleTheme(){
+  const isLight = document.body.classList.contains("light");
+  applyTheme(isLight ? "dark" : "light");
+}
 
-    function toMins(hhmm){
-      if(!hhmm) return 0;
-      const s = String(hhmm).trim();
-      const m = s.match(/^(\d+)\s*:\s*([0-5]\d)$/);
-      if(!m) return 0;
-      return parseInt(m[1],10)*60 + parseInt(m[2],10);
+/* =========================
+   Time helpers
+   ========================= */
+let _lastTimeValue = "";
+
+function toMins(hhmm){
+  if(!hhmm) return 0;
+  const s = String(hhmm).trim();
+  if(!s) return 0;
+  if(s.includes(":")){
+    const parts = s.split(":");
+    return (parseInt(parts[0],10)||0)*60 + (parseInt(parts[1],10)||0);
+  }
+  const d = s.replace(/[^0-9]/g,"");
+  if(d.length===4){
+    return (parseInt(d.slice(0,2),10)||0)*60 + (parseInt(d.slice(2),10)||0);
+  }
+  return 0;
+}
+function fmtMins(m){
+  if(!m || m<=0) return "0:00";
+  const h = Math.floor(m/60);
+  const mm = m%60;
+  return h + ":" + (mm<10?"0":"") + mm;
+}
+function parseHHMM(s){
+  s = String(s||"").trim().replace(":","");
+  if(s.length===3) s = "0"+s;
+  if(s.length!==4) return null;
+  const h = parseInt(s.slice(0,2),10);
+  const m = parseInt(s.slice(2),10);
+  if(Number.isNaN(h)||Number.isNaN(m)||h>23||m>59) return null;
+  return h*60+m;
+}
+function calcBlock(outHHMM, inHHMM){
+  const o = parseHHMM(outHHMM);
+  const i0 = parseHHMM(inHHMM);
+  if(o===null || i0===null) return null;
+  let i=i0;
+  if(i<o) i += 1440;
+  return i-o;
+}
+function up(s){ return (s||"").toUpperCase(); }
+
+function isTimeHM(s){
+  return /^\d+:\d{2}$/.test(String(s||"").trim());
+}
+function normalizeHM(v){
+  const s = String(v||"").trim();
+  if(!s) return "";
+  if(s.includes(":")){
+    const parts = s.split(":");
+    const hh = parseInt(parts[0],10);
+    const mm = parseInt(parts[1],10);
+    if(Number.isNaN(hh) || Number.isNaN(mm) || mm>59) return up(s);
+    return String(hh) + ":" + (mm<10?"0":"") + String(mm);
+  }
+  const d = s.replace(/[^0-9]/g,"");
+  if(d.length===4){
+    const hh = parseInt(d.slice(0,2),10);
+    const mm = parseInt(d.slice(2),10);
+    if(mm>59) return "";
+    return String(hh) + ":" + (mm<10?"0":"") + String(mm);
+  }
+  if(d.length===3){
+    const hh = parseInt(d.slice(0,1),10);
+    const mm = parseInt(d.slice(1),10);
+    if(mm>59) return "";
+    return String(hh) + ":" + (mm<10?"0":"") + String(mm);
+  }
+  return up(s);
+}
+
+const TIME_KEYS = ["total","night","ifr","pic","cop","dual","fi","simTotal"];
+
+/* =========================
+   Base totals UI
+   ========================= */
+const baseFields = [
+  ["total","TOTAL FLIGHT"],
+  ["night","NIGHT"],
+  ["ifr","IFR"],
+  ["pic","PIC"],
+  ["cop","CO-PILOT"],
+  ["dual","DUAL"],
+  ["fi","FI"],
+  ["fstd","FSTD TOTAL"],
+  ["ldg_day","DAY LDG"],
+  ["ldg_night","NIGHT LDG"]
+];
+
+function renderBase(){
+  const grid = document.getElementById("prevGrid");
+  grid.innerHTML = "";
+
+  baseFields.forEach(([k,label])=>{
+    const d = document.createElement("div");
+    d.className="field";
+    const ph = k.includes("ldg") ? "0" : "H:MM";
+    d.innerHTML = '<label>'+label+'</label><input id="base_'+k+'" value="'+escapeHTML(base[k]??"")+'" placeholder="'+ph+'">';
+    grid.appendChild(d);
+
+    const el = d.querySelector("input");
+
+    el.addEventListener("input", ()=>{
+      if(!k.includes("ldg")) el.value = up(el.value);
+      base[k] = el.value;
+      saveJSON(KEY_PREV, base);
+      render();
+    });
+
+    el.addEventListener("blur", ()=>{
+      if(!k.includes("ldg")){
+        el.value = up(el.value);
+        const norm = normalizeHM(el.value);
+        if(norm) el.value = norm;
+        if(isTimeHM(el.value)) _lastTimeValue = el.value;
+      }
+      base[k] = el.value;
+      saveJSON(KEY_PREV, base);
+      render();
+    });
+  });
+}
+
+/* =========================
+   Totals helpers
+   ========================= */
+function totalsZero(){
+  return { total:0, night:0, ifr:0, pic:0, cop:0, dual:0, fi:0, fstd:0, ldgDay:0, ldgNight:0 };
+}
+function addTotals(a,b){
+  return {
+    total:a.total+b.total,
+    night:a.night+b.night,
+    ifr:a.ifr+b.ifr,
+    pic:a.pic+b.pic,
+    cop:a.cop+b.cop,
+    dual:a.dual+b.dual,
+    fi:a.fi+b.fi,
+    fstd:a.fstd+b.fstd,
+    ldgDay:a.ldgDay+b.ldgDay,
+    ldgNight:a.ldgNight+b.ldgNight
+  };
+}
+function sumFlightsRange(start, end){
+  const s = totalsZero();
+  for(let i=start;i<end;i++){
+    const f = flights[i];
+    if(!f) continue;
+    s.total += toMins(f.total);
+    s.night += toMins(f.night);
+    s.ifr   += toMins(f.ifr);
+    s.pic   += toMins(f.pic);
+    s.cop   += toMins(f.cop);
+    s.dual  += toMins(f.dual);
+    s.fi    += toMins(f.fi);
+    s.fstd  += toMins(f.simTotal);
+    s.ldgDay += (parseInt(f.ldgDay,10)||0);
+    s.ldgNight += (parseInt(f.ldgNight,10)||0);
+  }
+  return s;
+}
+function baseTotalsToMins(){
+  return {
+    total: toMins(base.total),
+    night: toMins(base.night),
+    ifr:   toMins(base.ifr),
+    pic:   toMins(base.pic),
+    cop:   toMins(base.cop),
+    dual:  toMins(base.dual),
+    fi:    toMins(base.fi),
+    fstd:  toMins(base.fstd),
+    ldgDay: parseInt(base.ldg_day,10)||0,
+    ldgNight: parseInt(base.ldg_night,10)||0
+  };
+}
+
+/* =========================
+   Table cell helper (TAB copies previous time)
+   ========================= */
+function cellInput(idx, key, val, ph, cls){
+  const c = ("cell " + (cls||"")).trim();
+  const v = (val===undefined || val===null) ? "" : String(val);
+  return '<input class="'+c+'" value="'+escapeHTML(v)+'" placeholder="'+escapeHTML(ph||"")+'" '+
+    'oninput="onCell('+idx+', \''+key+'\', this.value)" '+
+    'onblur="onCellBlur('+idx+', \''+key+'\', this)" '+
+    'onkeydown="onCellKeyDown(event, '+idx+', \''+key+'\', this)">';
+}
+
+function ensureRowObject(i){
+  if (flights[i]) return;
+  flights[i] = {
+    id: Date.now() + Math.floor(Math.random()*100000),
+    date:"", depPlace:"", out:"", arrPlace:"", in:"",
+    acType:"", acReg:"", name:"SELF",
+    total:"",
+    ldgDay:"0", ldgNight:"0",
+    night:"", ifr:"", pic:"", cop:"", dual:"", fi:"",
+    simDate:"", simType:"", simTotal:"",
+    remarks:""
+  };
+}
+
+function onCell(i, key, value){
+  ensureRowObject(i);
+  const f = flights[i];
+
+  f[key] = up(value);
+
+  if(key==="out" || key==="in"){
+    const digits = String(f[key]||"").replace(/[^0-9]/g,"");
+    if(digits) f[key] = digits;
+  }
+
+  if(key==="out" || key==="in"){
+    const block = calcBlock(f.out, f.in);
+    if(block!==null){
+      const blockStr = fmtMins(block);
+      if(!f.total) f.total = blockStr;
+      if(!f.ifr) f.ifr = blockStr;
+      if(!f.pic) f.pic = blockStr;
     }
+  }
 
-    function fromMins(mins){
-      mins = Math.max(0, Math.round(mins));
-      const h = Math.floor(mins/60);
-      const m = mins%60;
-      return `${h}:${String(m).padStart(2,"0")}`;
+  saveJSON(KEY_FLIGHTS, flights);
+  render();
+}
+
+function onCellBlur(i, key, el){
+  el.value = up(el.value);
+
+  if(TIME_KEYS.includes(key)){
+    const norm = normalizeHM(el.value);
+    if(norm) el.value = norm;
+    if(isTimeHM(el.value)) _lastTimeValue = el.value;
+  }
+
+  if(key==="out" || key==="in"){
+    const digits = String(el.value||"").replace(/[^0-9]/g,"");
+    el.value = digits;
+  }
+
+  onCell(i, key, el.value);
+}
+
+function onCellKeyDown(e, i, key, el){
+  if(e.key !== "Tab") return;
+  const empty = !String(el.value||"").trim();
+  if(empty && TIME_KEYS.includes(key) && isTimeHM(_lastTimeValue)){
+    el.value = _lastTimeValue;
+    onCell(i, key, el.value);
+  }
+}
+
+function clearRow(index){
+  if(!confirm("CLEAR THIS ROW?")) return;
+  flights[index] = null;
+  saveJSON(KEY_FLIGHTS, flights);
+  render();
+}
+
+/* =========================
+   Render (10 rows per page)
+   - TOTAL FROM PREVIOUS PAGE is carried totals up to end of previous page
+   ========================= */
+function render(){
+  const tbody = document.getElementById("tbody");
+  tbody.innerHTML = "";
+
+  const start = (currentPage - 1) * ROWS_PER_PAGE;
+  const end = start + ROWS_PER_PAGE;
+
+  if (flights.length < end) {
+    for (let i = flights.length; i < end; i++) flights.push(null);
+    saveJSON(KEY_FLIGHTS, flights);
+  }
+
+  // This page only
+  const sum = sumFlightsRange(start, end);
+
+  // Carried totals = BASE + ALL rows before this page
+  const baseM = baseTotalsToMins();
+  const beforeThisPage = sumFlightsRange(0, start);
+  const carried = addTotals(baseM, beforeThisPage);
+
+  // Total to date (end of current page)
+  const grand = addTotals(carried, sum);
+
+  for(let r=0; r<ROWS_PER_PAGE; r++){
+    const idx = start + r;
+    const f = flights[idx];
+
+    const v = (key) => (f && f[key]) ? f[key] : "";
+    const tr = document.createElement("tr");
+
+    tr.innerHTML =
+      '<td>'+cellInput(idx,"date", v("date"), "DD.MM.YY", "")+'</td>'+
+      '<td>'+cellInput(idx,"depPlace", v("depPlace"), "ICAO", "upper")+'</td>'+
+      '<td>'+cellInput(idx,"out", v("out"), "HHMM", "time")+'</td>'+
+      '<td>'+cellInput(idx,"arrPlace", v("arrPlace"), "ICAO", "upper")+'</td>'+
+      '<td>'+cellInput(idx,"in", v("in"), "HHMM", "time")+'</td>'+
+      '<td>'+cellInput(idx,"acType", v("acType"), "B781", "upper")+'</td>'+
+      '<td>'+cellInput(idx,"acReg", v("acReg"), "B-17806", "upper")+'</td>'+
+      '<td>'+cellInput(idx,"name", v("name"), "SELF", "upper")+'</td>'+
+
+      '<td>'+cellInput(idx,"total", v("total"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(idx,"ldgDay", v("ldgDay"), "0", "small")+'</td>'+
+      '<td>'+cellInput(idx,"ldgNight", v("ldgNight"), "0", "small")+'</td>'+
+
+      '<td>'+cellInput(idx,"night", v("night"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(idx,"ifr", v("ifr"), "H:MM", "")+'</td>'+
+
+      '<td>'+cellInput(idx,"pic", v("pic"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(idx,"cop", v("cop"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(idx,"dual", v("dual"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(idx,"fi", v("fi"), "H:MM", "")+'</td>'+
+
+      '<td>'+cellInput(idx,"simDate", v("simDate"), "DD.MM.YY", "small")+'</td>'+
+      '<td>'+cellInput(idx,"simType", v("simType"), "TYPE", "small upper")+'</td>'+
+      '<td>'+cellInput(idx,"simTotal", v("simTotal"), "H:MM", "small")+'</td>'+
+
+      '<td>'+cellInput(idx,"remarks", v("remarks"), "", "")+'</td>'+
+      '<td>'+(f ? '<button class="del" type="button" onclick="clearRow('+idx+')">×</button>' : '')+'</td>';
+
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById("k_total").textContent = fmtMins(grand.total);
+  document.getElementById("k_pic").textContent   = fmtMins(grand.pic);
+  document.getElementById("k_night").textContent = fmtMins(grand.night);
+  document.getElementById("k_ifr").textContent   = fmtMins(grand.ifr);
+
+  const maxPage = Math.max(1, Math.ceil(flights.length / ROWS_PER_PAGE));
+  if(currentPage > maxPage) currentPage = maxPage;
+  document.getElementById("pageLabel").textContent = "PAGE " + currentPage + " / " + maxPage;
+
+  // Footer rows: show carried totals as “TOTAL FROM PREVIOUS PAGE”
+  document.getElementById("tfoot").innerHTML =
+    '<tr class="total-this">'+
+      '<td class="tfLabel" colspan="8">TOTAL FROM THIS PAGE</td>'+
+      '<td>'+(sum.total?fmtMins(sum.total):"—")+'</td>'+
+      '<td>'+(sum.ldgDay||"—")+'</td>'+
+      '<td>'+(sum.ldgNight||"—")+'</td>'+
+      '<td>'+(sum.night?fmtMins(sum.night):"—")+'</td>'+
+      '<td>'+(sum.ifr?fmtMins(sum.ifr):"—")+'</td>'+
+      '<td>'+(sum.pic?fmtMins(sum.pic):"—")+'</td>'+
+      '<td>'+(sum.cop?fmtMins(sum.cop):"—")+'</td>'+
+      '<td>'+(sum.dual?fmtMins(sum.dual):"—")+'</td>'+
+      '<td>'+(sum.fi?fmtMins(sum.fi):"—")+'</td>'+
+      '<td colspan="2">—</td>'+
+      '<td>'+(sum.fstd?fmtMins(sum.fstd):"—")+'</td>'+
+      '<td></td><td></td>'+
+    '</tr>'+
+
+    '<tr class="total-prev">'+
+      '<td class="tfLabel" colspan="8">TOTAL FROM PREVIOUS PAGE</td>'+
+      '<td>'+(carried.total?fmtMins(carried.total):"—")+'</td>'+
+      '<td>'+(carried.ldgDay||"—")+'</td>'+
+      '<td>'+(carried.ldgNight||"—")+'</td>'+
+      '<td>'+(carried.night?fmtMins(carried.night):"—")+'</td>'+
+      '<td>'+(carried.ifr?fmtMins(carried.ifr):"—")+'</td>'+
+      '<td>'+(carried.pic?fmtMins(carried.pic):"—")+'</td>'+
+      '<td>'+(carried.cop?fmtMins(carried.cop):"—")+'</td>'+
+      '<td>'+(carried.dual?fmtMins(carried.dual):"—")+'</td>'+
+      '<td>'+(carried.fi?fmtMins(carried.fi):"—")+'</td>'+
+      '<td colspan="2">—</td>'+
+      '<td>'+(carried.fstd?fmtMins(carried.fstd):"—")+'</td>'+
+      '<td></td><td></td>'+
+    '</tr>'+
+
+    '<tr class="grand">'+
+      '<td class="tfLabel" colspan="8">■ TOTAL TO DATE</td>'+
+      '<td>'+(grand.total?fmtMins(grand.total):"—")+'</td>'+
+      '<td>'+(grand.ldgDay||"—")+'</td>'+
+      '<td>'+(grand.ldgNight||"—")+'</td>'+
+      '<td>'+(grand.night?fmtMins(grand.night):"—")+'</td>'+
+      '<td>'+(grand.ifr?fmtMins(grand.ifr):"—")+'</td>'+
+      '<td>'+(grand.pic?fmtMins(grand.pic):"—")+'</td>'+
+      '<td>'+(grand.cop?fmtMins(grand.cop):"—")+'</td>'+
+      '<td>'+(grand.dual?fmtMins(grand.dual):"—")+'</td>'+
+      '<td>'+(grand.fi?fmtMins(grand.fi):"—")+'</td>'+
+      '<td colspan="2">—</td>'+
+      '<td>'+(grand.fstd?fmtMins(grand.fstd):"—")+'</td>'+
+      '<td></td><td></td>'+
+    '</tr>';
+
+  saveJSON(KEY_FLIGHTS, flights);
+}
+
+/* =========================
+   Modal controls (fixed)
+   ========================= */
+function overlayClick(e){
+  if(e.target && e.target.id === "overlay") closeModal();
+}
+function closeModal(){
+  document.getElementById("overlay").classList.remove("open");
+}
+function clearModalFields(){
+  const ids = [
+    "f_date","f_name","f_dep","f_out","f_arr","f_in","f_type","f_reg",
+    "f_total","f_night","f_ifr","f_pic","f_cop","f_dual","f_fi",
+    "f_ldg_day","f_ldg_night","f_sim_date","f_sim_type","f_sim_total","f_rem"
+  ];
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(id === "f_name") el.value = "SELF";
+    else if(id === "f_ldg_day" || id === "f_ldg_night") el.value = "0";
+    else el.value = "";
+  });
+}
+function openModal(){
+  clearModalFields();
+  document.getElementById("overlay").classList.add("open");
+  renderAttachPreview();
+  setTimeout(() => {
+    const dateField = document.getElementById("f_date");
+    if(dateField){ dateField.focus(); dateField.select(); }
+  }, 80);
+}
+
+/* =========================
+   Add flight (first empty row on current page, else next page)
+   ========================= */
+function saveFromModal(){
+  const get = id => up(document.getElementById(id).value.trim());
+
+  const out = String(get("f_out")).replace(/[^0-9]/g,"");
+  const inn = String(get("f_in")).replace(/[^0-9]/g,"");
+  const block = calcBlock(out, inn);
+  const blockStr = block!==null ? fmtMins(block) : "";
+
+  const total = normalizeHM(get("f_total")) || blockStr;
+  const ifr   = normalizeHM(get("f_ifr")) || total;
+  const pic   = normalizeHM(get("f_pic")) || total;
+
+  const row = {
+    id: Date.now() + Math.floor(Math.random()*100000),
+    date: get("f_date"),
+    depPlace: get("f_dep"),
+    out: out,
+    arrPlace: get("f_arr"),
+    in: inn,
+    acType: get("f_type"),
+    acReg: get("f_reg"),
+    name: get("f_name") || "SELF",
+
+    total: total,
+    ldgDay: String(document.getElementById("f_ldg_day").value || "0").trim(),
+    ldgNight: String(document.getElementById("f_ldg_night").value || "0").trim(),
+
+    night: normalizeHM(get("f_night")),
+    ifr: ifr,
+    pic: pic,
+    cop: normalizeHM(get("f_cop")),
+    dual: normalizeHM(get("f_dual")),
+    fi: normalizeHM(get("f_fi")),
+
+    simDate: get("f_sim_date"),
+    simType: get("f_sim_type"),
+    simTotal: normalizeHM(get("f_sim_total")),
+
+    remarks: get("f_rem")
+  };
+
+  const start = (currentPage - 1) * ROWS_PER_PAGE;
+  const end = start + ROWS_PER_PAGE;
+
+  if (flights.length < end) for (let i = flights.length; i < end; i++) flights.push(null);
+
+  let placed = false;
+  for(let i=start; i<end; i++){
+    if(!flights[i]){
+      flights[i] = row;
+      placed = true;
+      break;
     }
+  }
 
-    function toInt(v){
-      const n = parseInt(String(v||"").trim(), 10);
-      return Number.isFinite(n) ? n : 0;
-    }
+  if(!placed){
+    setPage(currentPage + 1);
+    const newStart = (currentPage - 1) * ROWS_PER_PAGE;
+    const newEnd = newStart + ROWS_PER_PAGE;
+    if (flights.length < newEnd) for (let i = flights.length; i < newEnd; i++) flights.push(null);
+    flights[newStart] = row;
+  }
 
-    function saveFlights(){
-      localStorage.setItem(LS_KEY, JSON.stringify(flights));
-    }
+  if(isTimeHM(row.total)) _lastTimeValue = row.total;
+  if(isTimeHM(row.simTotal)) _lastTimeValue = row.simTotal;
 
-    function loadFlights(){
+  saveJSON(KEY_FLIGHTS, flights);
+  closeModal();
+  render();
+}
+
+/* =========================
+   Attachments preview
+   ========================= */
+document.getElementById("photoInput").addEventListener("change", (e)=>{
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    attach.photoDataUrl = String(r.result || "");
+    saveJSON(KEY_ATTACH, attach);
+    renderAttachPreview();
+  };
+  r.readAsDataURL(file);
+});
+document.getElementById("pdfInput").addEventListener("change", (e)=>{
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  attach.pdfName = up(file.name || "LOGBOOK.PDF");
+  saveJSON(KEY_ATTACH, attach);
+  renderAttachPreview();
+});
+function renderAttachPreview(){
+  const p = document.getElementById("photoPrev");
+  if(attach.photoDataUrl){
+    p.style.display = "block";
+    p.innerHTML = '<img src="'+attach.photoDataUrl+'" alt="PHOTO PREVIEW">';
+  }else{
+    p.style.display = "none";
+    p.innerHTML = "";
+  }
+  document.getElementById("pdfName").textContent =
+    attach.pdfName ? ("SELECTED PDF: " + attach.pdfName) : "";
+}
+
+/* =========================
+   Backup / Restore
+   ========================= */
+function exportBackup(){
+  const payload = {
+    flights,
+    base,
+    theme: document.body.classList.contains("light") ? "light" : "dark",
+    page: currentPage
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "MARA-LOGBOOK-BACKUP.JSON";
+  a.click();
+}
+function importBackup(){
+  const input = document.createElement("input");
+  input.type="file";
+  input.accept=".json,application/json";
+  input.onchange = ()=>{
+    const file = input.files && input.files[0];
+    if(!file) return;
+    const r = new FileReader();
+    r.onload = ()=>{
       try{
-        const raw = localStorage.getItem(LS_KEY);
-        if(!raw) return [];
-        const arr = JSON.parse(raw);
-        return Array.isArray(arr) ? arr : [];
+        const obj = JSON.parse(String(r.result||"{}"));
+        if(Array.isArray(obj.flights)) flights = obj.flights;
+        if(obj.base) base = obj.base;
+
+        saveJSON(KEY_FLIGHTS, flights);
+        saveJSON(KEY_PREV, base);
+
+        applyTheme(obj.theme === "light" ? "light" : "dark");
+        currentPage = parseInt(obj.page || "1", 10) || 1;
+        localStorage.setItem(KEY_PAGE, String(currentPage));
+
+        renderBase();
+        render();
       }catch(e){
-        return [];
+        alert("BACKUP FILE NOT VALID.");
       }
-    }
-
-    function loadBaseTotals(){
-      try{
-        const raw = localStorage.getItem(LS_BASE);
-        if(!raw) return {
-          total:"0:00", night:"0:00", ifr:"0:00", pic:"0:00", cop:"0:00", dual:"0:00", fi:"0:00",
-          ldgDay:0, ldgNight:0
-        };
-        const o = JSON.parse(raw);
-        return {
-          total: o.total || "0:00",
-          night: o.night || "0:00",
-          ifr: o.ifr || "0:00",
-          pic: o.pic || "0:00",
-          cop: o.cop || "0:00",
-          dual: o.dual || "0:00",
-          fi: o.fi || "0:00",
-          ldgDay: toInt(o.ldgDay),
-          ldgNight: toInt(o.ldgNight),
-        };
-      }catch(e){
-        return {
-          total:"0:00", night:"0:00", ifr:"0:00", pic:"0:00", cop:"0:00", dual:"0:00", fi:"0:00",
-          ldgDay:0, ldgNight:0
-        };
-      }
-    }
-
-    function totalPages(){
-      return Math.max(1, Math.ceil(flights.length / ROWS_PER_PAGE));
-    }
-
-    function pageRange(pageIdx){
-      const start = pageIdx * ROWS_PER_PAGE;
-      const end = start + ROWS_PER_PAGE;
-      return { start, end };
-    }
-
-    function sumFlightsRange(start, end){
-      const s = {
-        total:0, night:0, ifr:0, pic:0, cop:0, dual:0, fi:0,
-        ldgDay:0, ldgNight:0
-      };
-      for(let i=start; i<end && i<flights.length; i++){
-        const r = flights[i] || {};
-        s.total += toMins(r.total);
-        s.night += toMins(r.night);
-        s.ifr += toMins(r.ifr);
-        s.pic += toMins(r.pic);
-        s.cop += toMins(r.cop);
-        s.dual += toMins(r.dual);
-        s.fi += toMins(r.fi);
-        s.ldgDay += toInt(r.dayLdg);
-        s.ldgNight += toInt(r.nightLdg);
-      }
-      return s;
-    }
-
-    function baseToSums(){
-      return {
-        total: toMins(baseTotals.total),
-        night: toMins(baseTotals.night),
-        ifr: toMins(baseTotals.ifr),
-        pic: toMins(baseTotals.pic),
-        cop: toMins(baseTotals.cop),
-        dual: toMins(baseTotals.dual),
-        fi: toMins(baseTotals.fi),
-        ldgDay: toInt(baseTotals.ldgDay),
-        ldgNight: toInt(baseTotals.ldgNight),
-      };
-    }
-
-    function addSums(a,b){
-      return {
-        total: a.total+b.total,
-        night: a.night+b.night,
-        ifr: a.ifr+b.ifr,
-        pic: a.pic+b.pic,
-        cop: a.cop+b.cop,
-        dual: a.dual+b.dual,
-        fi: a.fi+b.fi,
-        ldgDay: a.ldgDay+b.ldgDay,
-        ldgNight: a.ldgNight+b.ldgNight,
-      };
-    }
-
-    function sumsToDisplay(s){
-      return {
-        total: fromMins(s.total),
-        night: fromMins(s.night),
-        ifr: fromMins(s.ifr),
-        pic: fromMins(s.pic),
-        cop: fromMins(s.cop),
-        dual: fromMins(s.dual),
-        fi: fromMins(s.fi),
-        ldgDay: s.ldgDay,
-        ldgNight: s.ldgNight
-      };
-    }
-
-    /**********************
-     *  RENDER APP TABLE
-     **********************/
-    function render(){
-      currentPage = clamp(currentPage, 0, totalPages()-1);
-
-      document.getElementById("rowsPerPageText").textContent = ROWS_PER_PAGE;
-      document.getElementById("pageLabel").textContent = `PAGE ${currentPage+1} / ${totalPages()}`;
-
-      // Header stats = TOTAL TO DATE (base + all rows)
-      const base = baseToSums();
-      const all = sumFlightsRange(0, flights.length);
-      const toDate = addSums(base, all);
-      const disp = sumsToDisplay(toDate);
-
-      document.getElementById("statTotal").textContent = disp.total;
-      document.getElementById("statNight").textContent = disp.night;
-      document.getElementById("statIFR").textContent = disp.ifr;
-      document.getElementById("statPIC").textContent = disp.pic;
-
-      // Page rows
-      const {start, end} = pageRange(currentPage);
-      const tbody = document.getElementById("tbody");
-      tbody.innerHTML = "";
-
-      for(let i=start; i<end; i++){
-        const row = flights[i] || null;
-
-        const tr = document.createElement("tr");
-
-        const cells = [
-          ["date","DD.MM.YY"],
-          ["depPlace","ICAO"],
-          ["depTime","HHMM"],
-          ["arrPlace","ICAO"],
-          ["arrTime","HHMM"],
-          ["acType","B781"],
-          ["acReg","B-17806"],
-          ["picName","SELF"],
-          ["total","H:MM"],
-          ["dayLdg","0"],
-          ["nightLdg","0"],
-          ["night","H:MM"],
-          ["ifr","H:MM"],
-          ["pic","H:MM"],
-          ["cop","H:MM"],
-          ["dual","H:MM"],
-          ["fi","H:MM"],
-        ];
-
-        cells.forEach(([key, ph])=>{
-          const td = document.createElement("td");
-          const input = document.createElement("input");
-          input.value = row ? (row[key] ?? "") : "";
-          input.placeholder = ph;
-          input.autocapitalize = "characters";
-          input.spellcheck = false;
-
-          // iPad friendly numeric keyboards where useful
-          if(["depTime","arrTime"].includes(key)) input.inputMode = "numeric";
-          if(["dayLdg","nightLdg"].includes(key)) input.inputMode = "numeric";
-          if(["total","night","ifr","pic","cop","dual","fi"].includes(key)) input.inputMode = "text";
-
-          input.addEventListener("input", ()=>{
-            if(!flights[i]) flights[i] = emptyRow();
-            flights[i][key] = input.value;
-            saveFlights();
-            renderFooters(); // update totals live
-            renderHeaderStatsOnly();
-          });
-
-          td.appendChild(input);
-          tr.appendChild(td);
-        });
-
-        // delete
-        const tdDel = document.createElement("td");
-        const del = document.createElement("button");
-        del.className = "del";
-        del.textContent = "DEL";
-        del.addEventListener("click", ()=>{
-          if(i < flights.length){
-            flights.splice(i,1);
-            saveFlights();
-            if(currentPage > totalPages()-1) currentPage = totalPages()-1;
-            render();
-          }
-        });
-        tdDel.appendChild(del);
-        tr.appendChild(tdDel);
-
-        tbody.appendChild(tr);
-      }
-
-      renderFooters();
-      updateNavButtons();
-    }
-
-    function renderHeaderStatsOnly(){
-      const base = baseToSums();
-      const all = sumFlightsRange(0, flights.length);
-      const toDate = addSums(base, all);
-      const disp = sumsToDisplay(toDate);
-
-      document.getElementById("statTotal").textContent = disp.total;
-      document.getElementById("statNight").textContent = disp.night;
-      document.getElementById("statIFR").textContent = disp.ifr;
-      document.getElementById("statPIC").textContent = disp.pic;
-    }
-
-    function renderFooters(){
-      const {start, end} = pageRange(currentPage);
-      const base = baseToSums();
-
-      const thisPage = sumFlightsRange(start, end);
-      const beforeThisPage = sumFlightsRange(0, start);
-
-      const prevPageTotals = addSums(base, beforeThisPage);
-      const totalToDate = addSums(prevPageTotals, thisPage);
-
-      const a = sumsToDisplay(thisPage);
-      const b = sumsToDisplay(prevPageTotals);
-      const c = sumsToDisplay(totalToDate);
-
-      const tfoot = document.getElementById("tfoot");
-      tfoot.innerHTML = "";
-
-      // footer rows follow the screenshot style:
-      // TOTAL FROM THIS PAGE
-      // TOTAL FROM PREVIOUS PAGE
-      // TOTAL TO DATE
-      const cols = [
-        "LABEL",
-        "SKIP","SKIP","SKIP","SKIP","SKIP","SKIP","SKIP",
-        "total","ldgDay","ldgNight","night","ifr","pic","cop","dual","fi",
-        "SKIP"
-      ];
-
-      tfoot.appendChild(makeFooterRow("TOTAL FROM THIS PAGE", a, cols));
-      tfoot.appendChild(makeFooterRow("TOTAL FROM PREVIOUS PAGE", b, cols));
-      tfoot.appendChild(makeFooterRow("TOTAL TO DATE", c, cols));
-    }
-
-    function makeFooterRow(label, sums, cols){
-      const tr = document.createElement("tr");
-      cols.forEach((k, idx)=>{
-        const td = document.createElement("td");
-        if(idx===0){
-          td.textContent = label;
-          tr.appendChild(td);
-          return;
-        }
-        if(k==="SKIP"){
-          td.textContent = "";
-          tr.appendChild(td);
-          return;
-        }
-        let val = "";
-        if(k==="total") val = sums.total;
-        if(k==="night") val = sums.night;
-        if(k==="ifr") val = sums.ifr;
-        if(k==="pic") val = sums.pic;
-        if(k==="cop") val = sums.cop;
-        if(k==="dual") val = sums.dual;
-        if(k==="fi") val = sums.fi;
-        if(k==="ldgDay") val = String(sums.ldgDay);
-        if(k==="ldgNight") val = String(sums.ldgNight);
-
-        td.innerHTML = `<span class="val">${val}</span>`;
-        tr.appendChild(td);
-      });
-      return tr;
-    }
-
-    function updateNavButtons(){
-      document.getElementById("prevBtn").disabled = (currentPage===0);
-      document.getElementById("nextBtn").disabled = (currentPage===totalPages()-1);
-      // visually indicate disabled
-      document.getElementById("prevBtn").style.opacity = (currentPage===0) ? .35 : 1;
-      document.getElementById("nextBtn").style.opacity = (currentPage===totalPages()-1) ? .35 : 1;
-    }
-
-    function emptyRow(){
-      return {
-        date:"", depPlace:"", depTime:"", arrPlace:"", arrTime:"",
-        acType:"", acReg:"", picName:"SELF",
-        total:"", dayLdg:"", nightLdg:"",
-        night:"", ifr:"", pic:"", cop:"", dual:"", fi:""
-      };
-    }
-
-    /**********************
-     *  THEME
-     **********************/
-    function setTheme(theme){
-      document.documentElement.setAttribute("data-theme", theme);
-      localStorage.setItem(LS_THEME, theme);
-      document.getElementById("themeText").textContent = theme.toUpperCase();
-    }
-
-    /**********************
-     *  PRINT (Basic EASA, PRINT-ONLY)
-     **********************/
-    function openPrintModal(){
-      // load saved printed meta
-      pilotName = localStorage.getItem(LS_PILOT) || "";
-      licenceNumber = localStorage.getItem(LS_LIC) || "";
-      document.getElementById("pilotNameInput").value = pilotName;
-      document.getElementById("licenceInput").value = licenceNumber;
-
-      // defaults for range boxes
-      document.getElementById("printFrom").value = "1";
-      document.getElementById("printTo").value = String(totalPages());
-
-      document.getElementById("printModal").classList.add("show");
-      updateRangeBoxState();
-    }
-
-    function closePrintModal(){
-      document.getElementById("printModal").classList.remove("show");
-    }
-
-    function updateRangeBoxState(){
-      const type = document.querySelector('input[name="printType"]:checked')?.value || "all";
-      const box = document.getElementById("rangeBox");
-      box.style.display = (type === "range") ? "flex" : "none";
-    }
-
-    function doPrint(){
-      // save printed meta (print-only info, but stored)
-      pilotName = (document.getElementById("pilotNameInput").value || "").trim();
-      licenceNumber = (document.getElementById("licenceInput").value || "").trim();
-      localStorage.setItem(LS_PILOT, pilotName);
-      localStorage.setItem(LS_LIC, licenceNumber);
-
-      const type = document.querySelector('input[name="printType"]:checked').value;
-      const paper = document.getElementById("paperSize").value; // A4 / Letter
-      const sig = document.getElementById("sigEveryPage").value === "yes";
-
-      let pages = [];
-      if(type === "all"){
-        pages = [...Array(totalPages()).keys()];
-      }else if(type === "current"){
-        pages = [currentPage];
-      }else{
-        let from = toInt(document.getElementById("printFrom").value) - 1;
-        let to = toInt(document.getElementById("printTo").value) - 1;
-        from = clamp(from, 0, totalPages()-1);
-        to = clamp(to, 0, totalPages()-1);
-        if(to < from){ const tmp=to; to=from; from=tmp; }
-        for(let i=from; i<=to; i++) pages.push(i);
-      }
-
-      closePrintModal();
-      buildPrintDocument(pages, paper, sig);
-    }
-
-    // Build clean B/W EASA-ish print with signature on each page (optional).
-    function buildPrintDocument(pages, paper, signatureEveryPage){
-      const w = window.open("", "", "width=900,height=1200");
-      const pageSize = (paper === "Letter") ? "letter" : "A4";
-
-      // Print table columns (basic EASA style)
-      const cols = [
-        {k:"date", t:"DATE"},
-        {k:"depPlace", t:"DEP"},
-        {k:"depTime", t:"TIME"},
-        {k:"arrPlace", t:"ARR"},
-        {k:"arrTime", t:"TIME"},
-        {k:"acType", t:"TYPE"},
-        {k:"acReg", t:"REG"},
-        {k:"picName", t:"PIC"},
-        {k:"total", t:"TOTAL"},
-        {k:"dayLdg", t:"DAY LDG"},
-        {k:"nightLdg", t:"NGT LDG"},
-        {k:"night", t:"NIGHT"},
-        {k:"ifr", t:"IFR"},
-        {k:"pic", t:"PIC"},
-        {k:"cop", t:"CO-PIL"},
-        {k:"dual", t:"DUAL"},
-        {k:"fi", t:"FI"},
-      ];
-
-      const style = `
-        <style>
-          @page { size: ${pageSize}; margin: 12mm; }
-          body { font-family: Arial, Helvetica, sans-serif; color:#000; }
-          .page { page-break-after: always; }
-          .hdr { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:6mm; }
-          .ttl { font-weight:700; font-size:14px; letter-spacing:.06em; }
-          .meta { font-size:11px; line-height:1.35; }
-          table { width:100%; border-collapse:collapse; font-size:10px; }
-          th, td { border:1px solid #000; padding:3px 4px; text-align:center; white-space:nowrap; }
-          th { font-size:9px; letter-spacing:.08em; }
-          .foot { margin-top:6mm; display:flex; justify-content:space-between; font-size:11px; }
-          .sig { margin-top:10mm; font-size:11px; }
-          .sigline { display:inline-block; min-width:220px; border-bottom:1px solid #000; transform: translateY(-2px); }
-          .totals { margin-top:4mm; font-size:11px; text-align:right; }
-        </style>
-      `;
-
-      let html = `<!doctype html><html><head><meta charset="utf-8">${style}</head><body>`;
-
-      const base = baseToSums();
-
-      pages.forEach(p=>{
-        const {start, end} = pageRange(p);
-        const pageSum = sumFlightsRange(start, end);
-        const before = sumFlightsRange(0, end);          // to end of this page
-        const toDate = addSums(base, before);
-        const dispToDate = sumsToDisplay(toDate);
-
-        html += `<div class="page">`;
-
-        html += `
-          <div class="hdr">
-            <div>
-              <div class="ttl">PILOT LOGBOOK (Basic EASA Print)</div>
-              <div class="meta">
-                Name: ${escapeHtml(pilotName || "")}<br>
-                Licence No: ${escapeHtml(licenceNumber || "")}
-              </div>
-            </div>
-            <div class="meta" style="text-align:right;">
-              Page ${p+1} / ${totalPages()}<br>
-              Printed: ${new Date().toLocaleDateString()}
-            </div>
-          </div>
-        `;
-
-        // table
-        html += `<table><thead><tr>`;
-        cols.forEach(c => html += `<th>${c.t}</th>`);
-        html += `</tr></thead><tbody>`;
-
-        for(let i=start; i<end; i++){
-          const r = flights[i] || emptyRow();
-          html += `<tr>`;
-          cols.forEach(c=>{
-            html += `<td>${escapeHtml(String(r[c.k] ?? ""))}</td>`;
-          });
-          html += `</tr>`;
-        }
-
-        html += `</tbody></table>`;
-
-        html += `
-          <div class="totals">
-            Total time to date: <b>${dispToDate.total}</b> &nbsp; | &nbsp;
-            Night: <b>${dispToDate.night}</b> &nbsp; | &nbsp;
-            IFR: <b>${dispToDate.ifr}</b> &nbsp; | &nbsp;
-            PIC: <b>${dispToDate.pic}</b>
-          </div>
-        `;
-
-        if(signatureEveryPage){
-          html += `
-            <div class="sig">
-              Pilot signature: <span class="sigline"></span>
-            </div>
-          `;
-        }
-
-        html += `</div>`;
-      });
-
-      html += `</body></html>`;
-      w.document.open();
-      w.document.write(html);
-      w.document.close();
-
-      // iPad Safari: small delay improves reliability
-      setTimeout(()=>w.print(), 250);
-    }
-
-    function escapeHtml(s){
-      return String(s)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    /**********************
-     *  EVENTS
-     **********************/
-    document.getElementById("addBtn").addEventListener("click", ()=>{
-      flights.push(emptyRow());
-      saveFlights();
-      currentPage = totalPages()-1;
-      render();
-    });
-
-    document.getElementById("prevBtn").addEventListener("click", ()=>{
-      currentPage = clamp(currentPage-1, 0, totalPages()-1);
-      render();
-    });
-
-    document.getElementById("nextBtn").addEventListener("click", ()=>{
-      currentPage = clamp(currentPage+1, 0, totalPages()-1);
-      render();
-    });
-
-    document.getElementById("themeBtn").addEventListener("click", ()=>{
-      const cur = document.documentElement.getAttribute("data-theme") || "dark";
-      setTheme(cur === "dark" ? "light" : "dark");
-    });
-
-    document.getElementById("printBtn").addEventListener("click", openPrintModal);
-    document.getElementById("printCancel").addEventListener("click", closePrintModal);
-    document.getElementById("printGo").addEventListener("click", doPrint);
-
-    // radio change show/hide range box
-    document.querySelectorAll('input[name="printType"]').forEach(r=>{
-      r.addEventListener("change", updateRangeBoxState);
-    });
-
-    // close modal by tapping outside (iPad-friendly)
-    document.getElementById("printModal").addEventListener("click", (e)=>{
-      if(e.target.id === "printModal") closePrintModal();
-    });
-
-    /**********************
-     *  INIT
-     **********************/
-    (function init(){
-      const savedTheme = localStorage.getItem(LS_THEME) || "dark";
-      setTheme(savedTheme);
-
-      // if empty, add 10 blank rows so it matches your look (10 rows page)
-      if(flights.length === 0){
-        for(let i=0;i<ROWS_PER_PAGE;i++) flights.push(emptyRow());
-        saveFlights();
-      }
-
-      render();
-    })();
-  </script>
+    };
+    r.readAsText(file);
+  };
+  input.click();
+}
+
+/* =========================
+   Sample import
+   ========================= */
+function seedFromPhoto(){
+  if(!confirm("IMPORT THE 10 SAMPLE FLIGHTS INTO PAGE 1?")) return;
+
+  const seeded = [
+    {date:"23.11", depPlace:"RCTP", out:"1300", arrPlace:"VTBS", in:"1642", acType:"B781", acReg:"B-17812", name:"SELF", total:"3:42", night:"3:42", ifr:"3:42", pic:"3:42", ldgDay:"0", ldgNight:"0"},
+    {date:"24.11", depPlace:"VTBS", out:"1957", arrPlace:"RCTP", in:"2329", acType:"B781", acReg:"B-17810", name:"SELF", total:"3:32", night:"2:32", ifr:"3:32", pic:"3:32", ldgDay:"1", ldgNight:"0"},
+    {date:"26.11", depPlace:"RCTP", out:"0735", arrPlace:"RKSI", in:"0957", acType:"B789", acReg:"B-17883", name:"SELF", total:"2:22", night:"2:22", ifr:"2:22", pic:"2:22", ldgDay:"0", ldgNight:"1"},
+    {date:"26.11", depPlace:"RKSI", out:"1114", arrPlace:"RCTP", in:"1415", acType:"B789", acReg:"B-17883", name:"SELF", total:"3:01", night:"",    ifr:"3:01", pic:"3:01", ldgDay:"0", ldgNight:"0"},
+    {date:"01.12", depPlace:"RCTP", out:"0732", arrPlace:"RKSI", in:"0951", acType:"B781", acReg:"B-17815", name:"SELF", total:"2:19", night:"1:19", ifr:"2:19", pic:"2:19", ldgDay:"0", ldgNight:"1"},
+    {date:"01.12", depPlace:"RKSI", out:"1059", arrPlace:"RCTP", in:"1338", acType:"B781", acReg:"B-17815", name:"SELF", total:"2:38", night:"2:38", ifr:"2:38", pic:"2:38", ldgDay:"0", ldgNight:"0"},
+    {date:"04.12", depPlace:"VTBS", out:"1945", arrPlace:"LOWW", in:"0649", acType:"B781", acReg:"B-17883", name:"SELF", total:"11:25",night:"7:00", ifr:"11:25",pic:"11:25",ldgDay:"1",ldgNight:"0"},
+    {date:"07.12", depPlace:"LOWW", out:"1657", arrPlace:"VTBS", in:"0308", acType:"B781", acReg:"B-17883", name:"SELF", total:"10:11",night:"7:30", ifr:"10:11",pic:"10:11",ldgDay:"0",ldgNight:"0"},
+    {date:"12.12", depPlace:"WSSS", out:"1924", arrPlace:"RCTP", in:"2359", acType:"B789", acReg:"B-17887", name:"SELF", total:"4:25", night:"9:25", ifr:"4:25", pic:"4:25", ldgDay:"0", ldgNight:"1"},
+    {date:"17.12", depPlace:"RCTP", out:"1153", arrPlace:"KDFW", in:"0112", acType:"B789", acReg:"B-17886", name:"SELF", total:"14:19",night:"5:00", ifr:"14:19",pic:"14:19",ldgDay:"0",ldgNight:"0"}
+  ];
+
+  flights = [];
+  for(let i=0;i<ROWS_PER_PAGE;i++) flights.push(null);
+
+  for(let i=0;i<seeded.length;i++){
+    const x = seeded[i];
+    flights[i] = {
+      id: Date.now() + Math.floor(Math.random()*100000),
+      date: up(x.date),
+      depPlace: up(x.depPlace),
+      out: String(x.out).replace(/[^0-9]/g,""),
+      arrPlace: up(x.arrPlace),
+      in: String(x.in).replace(/[^0-9]/g,""),
+      acType: up(x.acType),
+      acReg: up(x.acReg),
+      name: up(x.name),
+
+      total: up(x.total),
+      ldgDay: String(x.ldgDay),
+      ldgNight: String(x.ldgNight),
+
+      night: up(x.night),
+      ifr: up(x.ifr),
+      pic: up(x.pic),
+      cop: "",
+      dual: "",
+      fi: "",
+
+      simDate: "",
+      simType: "",
+      simTotal: "",
+
+      remarks: ""
+    };
+  }
+
+  currentPage = 1;
+  localStorage.setItem(KEY_PAGE, "1");
+  saveJSON(KEY_FLIGHTS, flights);
+
+  render();
+}
+
+/* =========================
+   Escaping
+   ========================= */
+function escapeHTML(s){
+  return String(s||"").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m] || m));
+}
+
+/* =========================
+   Init
+   ========================= */
+applyTheme(localStorage.getItem(KEY_THEME) || "dark");
+renderBase();
+render();
+</script>
 </body>
 </html>
