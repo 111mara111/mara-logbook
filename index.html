@@ -1029,13 +1029,42 @@ function render(){
 
   saveJSON(KEY_FLIGHTS, flights);
 }
+function clearModalFields(){
+  const ids = [
+    "f_date","f_name",
+    "f_dep","f_out",
+    "f_arr","f_in",
+    "f_type","f_reg",
+    "f_total","f_night",
+    "f_ifr","f_pic",
+    "f_cop","f_dual",
+    "f_fi","f_ldg_day","f_ldg_night",
+    "f_sim_date","f_sim_type","f_sim_total",
+    "f_rem"
+  ];
 
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+
+    if(id === "f_name"){
+      el.value = "SELF";  // default
+    } else if(id === "f_ldg_day" || id === "f_ldg_night"){
+      el.value = "0";     // default landings
+    } else {
+      el.value = "";
+    }
+  });
+}
 /* =========================
    Modal behavior
    ========================= */
 function openModal(){ document.getElementById("overlay").classList.add("open"); renderAttachPreview(); }
-function closeModal(){ document.getElementById("overlay").classList.remove("open"); }
-function overlayClick(e){ if(e.target && e.target.id==="overlay") closeModal(); }
+function openModal(){
+  clearModalFields();   // <<< ADD THIS
+  document.getElementById("overlay").classList.add("open");
+  renderAttachPreview();
+}function overlayClick(e){ if(e.target && e.target.id==="overlay") closeModal(); }
 
 /* =========================
    Add flight (first empty row on current page, else next page)
@@ -1109,8 +1138,8 @@ function saveFromModal(){
 
   saveJSON(KEY_FLIGHTS, flights);
   closeModal();
-  render();
-}
+clearModalFields();  // ensures next open is fresh
+render();
 
 /* =========================
    Attachments (local preview only)
