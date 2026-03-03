@@ -5,8 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Mara Pilot Logbook</title>
 
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1a33">
+
+  <!-- iOS Home Screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mara Logbook">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
   <style>
+    /* =========================
+       MARA PILOT LOGBOOK (FULL)
+       - 10 rows per page
+       - ALL CAPS always
+       - TAB on empty time copies previous H:MM
+       - Totals rows highlighted (yellow both themes)
+       - FSTD totals included
+       - Backup / Restore / Export PDF
+       - Totals panel toggle button
+       - FIX: rows are CREATED ONLY when DATE or DEP/ARR is entered
+       - FIX: typing into PIC/LDG/etc on empty row is ignored
+       - FIX: Next page disabled until 10 rows filled (no alerts)
+       - FIX: Modal always opens empty
+       ========================= */
+
     :root{
+      /* DARK default */
       --bg:#071326;
       --panel:rgba(10,24,50,.72);
       --panel2:rgba(10,24,50,.55);
@@ -14,15 +40,24 @@
       --muted:rgba(234,240,255,.72);
       --line:rgba(234,240,255,.10);
       --line2:rgba(234,240,255,.06);
+
       --gold:#d9bb62;
       --gold2:#caa84a;
+
+      --danger:#d06b5f;
+      --ok:#59c18d;
+
       --thead:rgba(8,20,45,.72);
       --row:rgba(255,255,255,.02);
       --rowAlt:rgba(255,255,255,.035);
       --rowHover:rgba(217,187,98,.08);
+
       --shadow:0 24px 80px rgba(0,0,0,.35);
+      --totals-accent:var(--gold);
     }
+
     body.light{
+      /* LIGHT */
       --bg:#eef3ff;
       --panel:rgba(255,255,255,.92);
       --panel2:rgba(255,255,255,.82);
@@ -30,10 +65,17 @@
       --muted:rgba(11,26,51,.70);
       --line:rgba(11,26,51,.12);
       --line2:rgba(11,26,51,.06);
+
+      /* same yellow */
+      --gold:#d9bb62;
+      --gold2:#caa84a;
+      --totals-accent:var(--gold);
+
       --thead:rgba(234,241,255,.95);
       --row:rgba(255,255,255,.98);
       --rowAlt:rgba(245,248,255,.98);
       --rowHover:rgba(217,187,98,.10);
+
       --shadow:0 24px 70px rgba(10,25,60,.12);
     }
 
@@ -42,16 +84,18 @@
     body{
       margin:0;
       font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
-      background: var(--bg);
+      background:
+        radial-gradient(1200px 600px at 20% 15%, rgba(14,60,120,.25), transparent 55%),
+        radial-gradient(1000px 550px at 80% 20%, rgba(30,80,170,.18), transparent 58%),
+        radial-gradient(900px 700px at 60% 80%, rgba(0,0,0,.35), transparent 60%),
+        var(--bg);
       color:var(--ink);
       overflow-x:hidden;
     }
 
-    /* ALL CAPS ALWAYS */
-    input, textarea, select { text-transform: uppercase; }
-
     .app{max-width:1500px;margin:0 auto;padding:18px 14px 30px}
 
+    /* ===== header ===== */
     .topbar{
       position:sticky;top:10px;z-index:50;
       display:flex;align-items:center;justify-content:space-between;gap:12px;
@@ -62,13 +106,49 @@
       padding:14px 14px;
       box-shadow:var(--shadow);
     }
-    .brand{display:flex;flex-direction:column;gap:4px;min-width:220px}
+
+    .brand{display:flex;flex-direction:column;gap:4px;min-width:220px;max-width:420px}
     .brand .title{
-      font-weight:1000;letter-spacing:4px;text-transform:uppercase;white-space:nowrap;
-      font-size:18px;line-height:1.1;
+      display:flex;align-items:center;gap:10px;
+      font-weight:1000;
+      line-height:1.1;
+      letter-spacing:4px;
+      text-transform:uppercase;
+      white-space:nowrap;
+      font-size:19px;
     }
     .brand .sub{
-      font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);font-weight:1000;
+      font-size:11px;
+      letter-spacing:3px;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:1000;
+    }
+
+    .kpis{
+      display:flex;align-items:center;justify-content:center;
+      gap:14px;flex:1;flex-wrap:wrap;min-width:320px;
+    }
+    .kpi{
+      min-width:150px;text-align:center;
+      padding:10px 12px;border-radius:14px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--line2);
+    }
+    .kpi .v{
+      font-weight:1000;
+      font-size:22px;
+      letter-spacing:1px;
+      color:var(--gold);
+      font-variant-numeric:tabular-nums;
+    }
+    .kpi .l{
+      margin-top:3px;
+      font-size:11px;
+      letter-spacing:3px;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:1000;
     }
 
     .actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
@@ -77,14 +157,25 @@
       background:rgba(255,255,255,.03);
       color:var(--ink);
       padding:10px 14px;
-      font-weight:1000;font-size:12px;letter-spacing:1px;
+      font-weight:1000;
+      font-size:12px;
+      letter-spacing:1px;
       cursor:pointer;
-      white-space:nowrap;text-transform:uppercase;
+      transition:transform .12s, background .12s, border-color .12s, opacity .12s;
+      white-space:nowrap;
+      text-transform:uppercase;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
     }
-    .btn:hover{border-color:rgba(217,187,98,.35)}
+    .btn:hover{transform:translateY(-1px);border-color:rgba(217,187,98,.35)}
+    .btn:active{transform:translateY(0);opacity:.9}
     .btn.gold{background:linear-gradient(180deg,var(--gold),var(--gold2));color:#1b1b1b;border-color:transparent}
+    .btn.danger{background:rgba(208,107,95,.12);border-color:rgba(208,107,95,.30);color:var(--danger)}
+    .btn.ok{background:rgba(89,193,141,.12);border-color:rgba(89,193,141,.30);color:var(--ok)}
     .btn.small{padding:9px 12px;min-width:44px}
+    .btn.disabled{opacity:.35;cursor:not-allowed;transform:none !important}
 
+    /* ===== panels ===== */
     .panel{
       margin-top:14px;border-radius:16px;overflow:hidden;
       border:1px solid var(--line2);
@@ -98,10 +189,41 @@
       border-bottom:1px solid var(--line2);
     }
     .panel-h .left{
+      display:flex;align-items:center;gap:10px;
       font-weight:1000;letter-spacing:3px;text-transform:uppercase;
       font-size:12px;color:var(--muted);white-space:nowrap;
     }
+    .panel-h .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 
+    /* ===== totals panel ===== */
+    .totalsPanel{display:none}
+    .totalsPanel.open{display:block}
+
+    .prev-grid{
+      padding:14px;
+      display:grid;
+      grid-template-columns:repeat(5, minmax(0,1fr));
+      gap:12px;
+    }
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field label{
+      font-size:10px;letter-spacing:3px;text-transform:uppercase;
+      color:var(--muted);font-weight:1000;
+    }
+    .field input{
+      height:40px;border-radius:12px;border:1px solid var(--line2);
+      background:rgba(255,255,255,.02);
+      color:var(--ink);
+      padding:10px 12px;
+      font-weight:1000;
+      outline:none;
+      font-variant-numeric:tabular-nums;
+      text-transform:uppercase;
+    }
+    body.light .field input{background:rgba(255,255,255,.92)}
+    .field input:focus{border-color:rgba(217,187,98,.45)}
+
+    /* ===== table ===== */
     .table-wrap{width:100%;overflow:auto;background:var(--panel2)}
     table{
       width:100%;
@@ -128,53 +250,67 @@
       letter-spacing:2px;
       font-size:10px;
     }
+    thead tr:nth-child(2) th{
+      font-size:9px;
+      letter-spacing:1px;
+      color:var(--muted);
+    }
+
     tbody tr{background:var(--row)}
     tbody tr:nth-child(even){background:var(--rowAlt)}
     tbody tr:hover{background:var(--rowHover)}
 
+    input, textarea, select{ text-transform:uppercase; }
+
     .cell{
       width:100%;
       border:none;outline:none;
-      background:transparent;
-      color:var(--ink);
+      background:transparent;color:var(--ink);
       font-weight:1000;
       text-align:center;
       font-size:11px;
       padding:2px 0;
+      text-transform:uppercase;
     }
+    .cell::placeholder{color:rgba(160,180,220,.55);font-weight:900}
+    body.light .cell::placeholder{color:rgba(90,110,150,.55)}
+    .upper{letter-spacing:1px}
+    .time{letter-spacing:1px}
+    .small{font-size:10px}
     .cell:focus{background:rgba(217,187,98,.10);border-radius:8px}
 
-    .del{
-      border-radius:10px;border:1px solid rgba(255,120,120,.35);
-      background:rgba(255,120,120,.12);
-      color:#ff8a80;
-      cursor:pointer;font-weight:1000;
-      padding:6px 10px;
-    }
-
+    /* totals rows */
     tfoot td{background:rgba(255,255,255,.03);color:var(--muted);font-weight:1000}
     .tfLabel{
       text-align:left;padding-left:10px;
       letter-spacing:3px;text-transform:uppercase;
-      font-size:10px;color:var(--muted);
+      color:var(--muted);font-size:10px;
     }
-    .total-row td{
+    .total-this td, .total-prev td{
+      color:var(--totals-accent);
+      background:rgba(217,187,98,.06);
+    }
+    .total-this .tfLabel, .total-prev .tfLabel{color:var(--totals-accent)}
+    .grand td{
+      border-top:2px solid rgba(217,187,98,.25);
       background:rgba(217,187,98,.10);
-      color:var(--gold);
-      font-weight:1000;
-    }
-    body.light .total-row td{
-      color:#0b1a33;
+      color:var(--totals-accent);
+      font-size:12px;
     }
 
-    /* MODAL */
+    .del{
+      border-radius:10px;border:1px solid rgba(208,107,95,.35);
+      background:rgba(208,107,95,.12);
+      color:var(--danger);
+      cursor:pointer;font-weight:1000;
+      padding:6px 10px;text-transform:uppercase;
+    }
+
+    /* ===== modal ===== */
     .overlay{
-      position:fixed;inset:0;
-      background:rgba(0,0,0,.45);
-      display:none;
-      align-items:center;justify-content:center;
-      padding:14px;z-index:100;
-      backdrop-filter:blur(12px);
+      position:fixed;inset:0;background:rgba(0,0,0,.45);
+      display:none;align-items:center;justify-content:center;
+      padding:14px;z-index:100;backdrop-filter:blur(12px);
     }
     .overlay.open{display:flex}
     .modal{
@@ -190,105 +326,221 @@
       display:flex;align-items:center;justify-content:space-between;gap:10px;
       padding:14px 16px;border-bottom:1px solid var(--line2);
       background:linear-gradient(180deg, rgba(255,255,255,.06), transparent);
+      flex:0 0 auto;
     }
     .modal-h .t{
       font-weight:1000;letter-spacing:3px;text-transform:uppercase;color:var(--muted);
+      display:flex;align-items:center;gap:10px;
     }
     .modal-b{
       padding:14px 16px;
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-      overflow:auto;
+      display:grid;grid-template-columns:1fr 1fr;gap:12px;
+      overflow:auto;-webkit-overflow-scrolling:touch;
+      flex:1 1 auto;
     }
-    .field{display:flex;flex-direction:column;gap:6px}
-    .field label{
-      font-size:10px;letter-spacing:3px;text-transform:uppercase;
-      color:var(--muted);font-weight:1000;
-    }
-    .field input{
-      height:40px;border-radius:12px;border:1px solid var(--line2);
-      background:rgba(255,255,255,.02);
+    .scanRow{grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap}
+    .scanBtn{
+      flex:1;min-width:280px;
+      border-radius:16px;padding:14px 14px;
+      border:2px dashed rgba(118,169,255,.35);
+      background:rgba(118,169,255,.08);
       color:var(--ink);
-      padding:10px 12px;
-      font-weight:1000;
-      outline:none;
+      font-weight:1000;letter-spacing:2px;text-transform:uppercase;
+      cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:10px;
     }
-    body.light .field input{background:rgba(255,255,255,.92)}
+    .scanBtn.pdf{border-color:rgba(89,193,141,.35);background:rgba(89,193,141,.08)}
+    .fileHidden{display:none}
+    .hint{
+      grid-column:1/-1;border:1px dashed var(--line);
+      border-radius:14px;padding:10px 12px;
+      color:var(--muted);font-size:12px;line-height:1.35;
+      background:rgba(255,255,255,.03);
+      text-transform:none;
+    }
+    .hint b{text-transform:uppercase}
+    .preview{
+      grid-column:1/-1;border-radius:14px;overflow:hidden;
+      border:1px solid var(--line2);
+      background:rgba(0,0,0,.08);
+      display:none;max-height:240px;
+    }
+    .preview img{width:100%;display:block}
     .modal-actions{
       grid-column:1/-1;
+      position:sticky;bottom:0;
       display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;
-      padding:10px 0 0;
+      padding:12px 0 6px;margin-top:6px;
+      background:linear-gradient(180deg, transparent, rgba(0,0,0,.18));
+    }
+    body.light .modal-actions{background:linear-gradient(180deg, transparent, rgba(255,255,255,.92))}
+
+    @media (max-width:1100px){.kpis{display:none}}
+    @media (max-width:980px){
+      .prev-grid{grid-template-columns:1fr 1fr}
+      .modal-b{grid-template-columns:1fr}
+      table{min-width:1600px}
     }
 
-    @media (max-width:980px){
-      .modal-b{grid-template-columns:1fr}
+    /* ===== print ===== */
+    .print-footer-easa{display:none}
+    @media print{
+      *{-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;}
+      .topbar,.panel-h .right,.del,.overlay{display:none !important}
+      body{background:#fff !important;color:#000 !important}
+      .app{max-width:none !important;padding:0 !important;margin:0 !important}
+      .panel{box-shadow:none !important;background:#fff !important;border:0 !important;margin:0 0 6mm 0 !important}
+      .panel-h{background:#fff !important;border:0 !important;padding:0 0 2mm 0 !important}
+      .panel-h .left{color:#111 !important;opacity:1 !important}
+      .table-wrap{overflow:visible !important;background:#fff !important}
+      table{min-width:0 !important;width:100% !important;font-size:8.2px !important;color:#000 !important}
+      th,td{padding:2.5px 2px !important;border:1px solid #444 !important;background:#fff !important;color:#000 !important}
+      thead th{background:#2f3440 !important;color:#fff !important}
+      input.cell{-webkit-text-fill-color:#000 !important;color:#000 !important}
+      .total-this td,.total-prev td,.grand td{background:#f3e6b5 !important;color:#000 !important}
+      @page{size:A4 landscape; margin:6mm}
+      .print-footer-easa{
+        display:block !important;
+        position:fixed;
+        bottom:5mm; left:0; width:100%;
+        text-align:center;
+        font-size:9px;
+        font-weight:900;
+        letter-spacing:2px;
+        color:#111;
+      }
     }
   </style>
 </head>
 
 <body>
   <div class="app">
+    <script>
+      // SAFETY: don’t register service worker while debugging “buttons not clickable”
+      // If you want SW later, we can re-enable after everything is stable.
+      // if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./service-worker.js").catch(()=>{}); }
+    </script>
 
+    <!-- TOPBAR -->
     <div class="topbar">
       <div class="brand">
         <div class="title">✈ MARA PILOT LOGBOOK</div>
         <div class="sub">FLIGHT RECORD SYSTEM</div>
       </div>
 
+      <div class="kpis">
+        <div class="kpi"><div class="v" id="k_total">0:00</div><div class="l">TOTAL TIME</div></div>
+        <div class="kpi"><div class="v" id="k_pic">0:00</div><div class="l">PIC TIME</div></div>
+        <div class="kpi"><div class="v" id="k_night">0:00</div><div class="l">NIGHT</div></div>
+        <div class="kpi"><div class="v" id="k_ifr">0:00</div><div class="l">IFR</div></div>
+      </div>
+
       <div class="actions">
-        <button class="btn small" id="prevBtn">◀</button>
-        <button class="btn" id="pageLabel" style="min-width:130px">PAGE 1 / 1</button>
-        <button class="btn small" id="nextBtn">▶</button>
-        <button class="btn" id="themeBtn">LIGHT</button>
-        <button class="btn gold" id="addBtn">+ ADD FLIGHT</button>
+        <button class="btn small" id="btnPrev" type="button">◀</button>
+        <button class="btn" id="pageLabel" type="button" style="min-width:130px">PAGE 1 / 1</button>
+        <button class="btn small" id="btnNext" type="button">▶</button>
+
+        <button class="btn" id="themeBtn" type="button">LIGHT</button>
+        <button class="btn" id="totalsBtn" type="button">TOTALS</button>
+
+        <button class="btn gold" id="addBtn" type="button">+ ADD FLIGHT</button>
+        <button class="btn" id="backupBtn" type="button">BACKUP</button>
+        <button class="btn" id="restoreBtn" type="button">RESTORE</button>
+        <button class="btn" id="pdfBtn" type="button">EXPORT PDF</button>
       </div>
     </div>
 
+    <!-- TOTALS PANEL (TOGGLE) -->
+    <div class="panel totalsPanel" id="totalsPanel">
+      <div class="panel-h">
+        <div class="left">📋 TOTAL FROM PREVIOUS PAGE</div>
+        <div class="right">
+          <button class="btn ok" id="seedBtn" type="button">IMPORT (PHOTO PAGE)</button>
+        </div>
+      </div>
+      <div class="prev-grid" id="prevGrid"></div>
+      <div class="print-footer-easa">EASA FCL.050 LOGBOOK EXPORT</div>
+    </div>
+
+    <!-- LOGBOOK TABLE -->
     <div class="panel">
       <div class="panel-h">
         <div class="left">📘 LOGBOOK PAGE (10 ROWS)</div>
+        <div class="right">
+          <span style="color:var(--muted);font-weight:1000;font-size:12px;letter-spacing:1px;text-transform:uppercase;">
+            AUTO-SAVED LOCALLY • WORKS OFFLINE
+          </span>
+        </div>
       </div>
 
       <div class="table-wrap">
         <table>
+          <!-- FIXED COLUMN WIDTHS -->
           <colgroup>
-            <col style="width:80px">
-            <col style="width:78px">
-            <col style="width:72px">
-            <col style="width:78px">
-            <col style="width:72px">
-            <col style="width:86px">
-            <col style="width:96px">
-            <col style="width:86px">
-            <col style="width:86px">
-            <col style="width:60px">
-            <col style="width:70px">
-            <col style="width:76px">
-            <col style="width:76px">
-            <col style="width:76px">
-            <col style="width:220px">
-            <col style="width:44px">
+            <col style="width:80px">   <!-- DATE -->
+            <col style="width:78px">   <!-- DEP PLACE -->
+            <col style="width:78px">   <!-- DEP TIME -->
+            <col style="width:78px">   <!-- ARR PLACE -->
+            <col style="width:78px">   <!-- ARR TIME -->
+            <col style="width:86px">   <!-- AC TYPE -->
+            <col style="width:100px">  <!-- AC REG -->
+            <col style="width:88px">   <!-- NAME(S) -->
+            <col style="width:88px">   <!-- TOTAL -->
+            <col style="width:60px">   <!-- DAY LDG -->
+            <col style="width:70px">   <!-- NIGHT LDG -->
+            <col style="width:78px">   <!-- NIGHT -->
+            <col style="width:78px">   <!-- IFR -->
+            <col style="width:78px">   <!-- PIC -->
+            <col style="width:86px">   <!-- CO-PILOT -->
+            <col style="width:78px">   <!-- DUAL -->
+            <col style="width:60px">   <!-- FI -->
+            <col style="width:86px">   <!-- FSTD DATE -->
+            <col style="width:70px">   <!-- FSTD TYPE -->
+            <col style="width:90px">   <!-- FSTD TOTAL -->
+            <col style="width:240px">  <!-- REMARKS -->
+            <col style="width:44px">   <!-- DEL -->
           </colgroup>
 
           <thead>
             <tr>
-              <th>DATE</th>
-              <th>DEP<br><span style="font-size:9px;opacity:.7">PLACE</span></th>
-              <th>DEP<br><span style="font-size:9px;opacity:.7">TIME</span></th>
-              <th>ARR<br><span style="font-size:9px;opacity:.7">PLACE</span></th>
-              <th>ARR<br><span style="font-size:9px;opacity:.7">TIME</span></th>
-              <th>A/C<br><span style="font-size:9px;opacity:.7">TYPE</span></th>
-              <th>A/C<br><span style="font-size:9px;opacity:.7">REG</span></th>
-              <th>NAME(S)</th>
-              <th>TOTAL</th>
-              <th>DAY<br><span style="font-size:9px;opacity:.7">LDG</span></th>
-              <th>NIGHT<br><span style="font-size:9px;opacity:.7">LDG</span></th>
+              <th>DATE<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">DD.MM.YY</span></th>
+
+              <th>DEP<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">PLACE</span></th>
+              <th>DEP<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">TIME</span></th>
+
+              <th>ARR<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">PLACE</span></th>
+              <th>ARR<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">TIME</span></th>
+
+              <th>AIRCRAFT<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">TYPE</span></th>
+              <th>AIRCRAFT<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">REG</span></th>
+
+              <th>NAME(S)<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">PIC</span></th>
+
+              <th>TOTAL<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">FLIGHT</span></th>
+
+              <th>DAY<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">LDG</span></th>
+              <th>NIGHT<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">LDG</span></th>
+
               <th>NIGHT</th>
               <th>IFR</th>
+
               <th>PIC</th>
-              <th>REMARKS</th>
+              <th>CO-PILOT</th>
+              <th>DUAL</th>
+              <th>FI</th>
+
+              <th colspan="3">FSTD SESSION</th>
+
+              <th>REMARKS & ENDORSEMENTS</th>
               <th></th>
+            </tr>
+
+            <tr>
+              <th colspan="17"></th>
+              <th>DATE<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">DD.MM.YY</span></th>
+              <th>TYPE</th>
+              <th>TOTAL<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">SESSION</span></th>
+              <th colspan="2"></th>
             </tr>
           </thead>
 
@@ -301,39 +553,62 @@
 
   <!-- MODAL -->
   <div class="overlay" id="overlay">
-    <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal">
       <div class="modal-h">
         <div class="t">✈ NEW FLIGHT ENTRY</div>
-        <button class="btn" id="closeBtn">CLOSE</button>
+        <button class="btn" id="closeModalBtn" type="button">Close</button>
       </div>
 
       <div class="modal-b">
-        <div class="field"><label>DATE</label><input id="f_date" placeholder="23.11"></div>
-        <div class="field"><label>NAME</label><input id="f_name" placeholder="SELF" value="SELF"></div>
+        <div class="scanRow">
+          <button class="scanBtn" id="photoBtn" type="button">📷 PHOTO SCAN</button>
+          <button class="scanBtn pdf" id="pdfBtn2" type="button">📄 PDF IMPORT</button>
+          <input class="fileHidden" type="file" id="photoInput" accept="image/*">
+          <input class="fileHidden" type="file" id="pdfInput" accept="application/pdf">
+        </div>
 
-        <div class="field"><label>DEP PLACE</label><input id="f_dep" placeholder="RCTP"></div>
-        <div class="field"><label>DEP TIME</label><input id="f_out" placeholder="1300"></div>
+        <div class="hint">
+          <b>NOTE:</b> PHOTO/PDF BUTTONS STORE A LOCAL PREVIEW REFERENCE (NO AI EXTRACTION).
+        </div>
 
-        <div class="field"><label>ARR PLACE</label><input id="f_arr" placeholder="VTBS"></div>
-        <div class="field"><label>ARR TIME</label><input id="f_in" placeholder="1642"></div>
+        <div class="preview" id="photoPrev"></div>
+        <div id="pdfName" style="grid-column:1/-1;color:var(--muted);font-weight:1000;letter-spacing:1px;"></div>
 
-        <div class="field"><label>A/C TYPE</label><input id="f_type" placeholder="B781"></div>
-        <div class="field"><label>A/C REG</label><input id="f_reg" placeholder="B-17812"></div>
+        <div class="field"><label>Date (DD.MM.YY)</label><input id="f_date" placeholder="23.11.25"></div>
+        <div class="field"><label>Name(s) PIC</label><input id="f_name" placeholder="SELF"></div>
 
-        <div class="field"><label>TOTAL (H:MM)</label><input id="f_total" placeholder="3:42"></div>
-        <div class="field"><label>NIGHT (H:MM)</label><input id="f_night" placeholder=""></div>
+        <div class="field"><label>Dep Place (ICAO)</label><input id="f_dep" placeholder="RCTP"></div>
+        <div class="field"><label>Dep Time (HHMM)</label><input id="f_out" placeholder="1300"></div>
 
-        <div class="field"><label>IFR (H:MM)</label><input id="f_ifr" placeholder=""></div>
-        <div class="field"><label>PIC (H:MM)</label><input id="f_pic" placeholder=""></div>
+        <div class="field"><label>Arr Place (ICAO)</label><input id="f_arr" placeholder="VTBS"></div>
+        <div class="field"><label>Arr Time (HHMM)</label><input id="f_in" placeholder="1642"></div>
 
-        <div class="field"><label>DAY LDG</label><input id="f_ldg_day" type="number" min="0" value="0"></div>
-        <div class="field"><label>NIGHT LDG</label><input id="f_ldg_night" type="number" min="0" value="0"></div>
+        <div class="field"><label>Aircraft Type</label><input id="f_type" placeholder="B781"></div>
+        <div class="field"><label>Registration</label><input id="f_reg" placeholder="B-17812"></div>
 
-        <div class="field" style="grid-column:1/-1"><label>REMARKS</label><input id="f_rem" placeholder=""></div>
+        <div class="field"><label>Total Flight (H:MM)</label><input id="f_total" placeholder="AUTO"></div>
+        <div class="field"><label>Night (H:MM)</label><input id="f_night" placeholder=""></div>
+
+        <div class="field"><label>IFR (H:MM)</label><input id="f_ifr" placeholder="AUTO"></div>
+        <div class="field"><label>PIC (H:MM)</label><input id="f_pic" placeholder="AUTO"></div>
+
+        <div class="field"><label>Co-Pilot (H:MM)</label><input id="f_cop" placeholder=""></div>
+        <div class="field"><label>Dual (H:MM)</label><input id="f_dual" placeholder=""></div>
+
+        <div class="field"><label>FI (H:MM)</label><input id="f_fi" placeholder=""></div>
+        <div class="field"><label>LDG Day</label><input id="f_ldg_day" type="number" min="0" placeholder="0"></div>
+
+        <div class="field"><label>LDG Night</label><input id="f_ldg_night" type="number" min="0" placeholder="0"></div>
+        <div class="field"><label>FSTD Date (DD.MM.YY)</label><input id="f_sim_date" placeholder=""></div>
+
+        <div class="field"><label>FSTD Type</label><input id="f_sim_type" placeholder=""></div>
+        <div class="field"><label>FSTD Total (H:MM)</label><input id="f_sim_total" placeholder=""></div>
+
+        <div class="field" style="grid-column:1/-1"><label>Remarks & Endorsements</label><input id="f_rem" placeholder=""></div>
 
         <div class="modal-actions">
-          <button class="btn" id="cancelBtn">CANCEL</button>
-          <button class="btn gold" id="saveBtn">SAVE FLIGHT</button>
+          <button class="btn" id="cancelBtn" type="button">Cancel</button>
+          <button class="btn gold" id="saveBtn" type="button">Save Flight</button>
         </div>
       </div>
     </div>
@@ -341,25 +616,44 @@
 
 <script>
 /* =========================
-   STORAGE
-========================= */
-const KEY = "mara_logbook_v11";
+   Storage + State
+   ========================= */
+const KEY_FLIGHTS = "mara_book_flights_v7";
+const KEY_PREV    = "mara_book_prev_v7";
+const KEY_THEME   = "mara_book_theme_v7";
+const KEY_ATTACH  = "mara_book_attach_v7";
+const KEY_PAGE    = "mara_page_v7";
+const KEY_TOTALS_OPEN = "mara_totals_open_v7";
 const ROWS_PER_PAGE = 10;
 
-let currentPage = 1;
-let flights = load();
+let currentPage = parseInt(localStorage.getItem(KEY_PAGE) || "1", 10);
+if (!currentPage || currentPage < 1) currentPage = 1;
 
-function load(){
-  try { return JSON.parse(localStorage.getItem(KEY)) || []; }
-  catch(e){ return []; }
+let flights = loadJSON(KEY_FLIGHTS, []);
+let prev = loadJSON(KEY_PREV, {
+  total: "0:00", night: "0:00", ifr: "0:00", pic: "0:00",
+  cop: "0:00", dual: "0:00", fi: "0:00",
+  ldg_day: "0", ldg_night: "0",
+  fstd: "0:00"
+});
+let attach = loadJSON(KEY_ATTACH, { photoDataUrl: "", pdfName: "" });
+
+function loadJSON(k, fallback){
+  try{
+    const v = localStorage.getItem(k);
+    if(!v) return fallback;
+    return JSON.parse(v);
+  }catch(e){ return fallback; }
 }
-function persist(){
-  localStorage.setItem(KEY, JSON.stringify(flights));
+function saveJSON(k, v){
+  try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){}
 }
+
+function up(s){ return (s||"").toUpperCase(); }
 
 /* =========================
-   THEME
-========================= */
+   Theme
+   ========================= */
 function applyTheme(mode){
   if(mode === "light"){
     document.body.classList.add("light");
@@ -368,7 +662,7 @@ function applyTheme(mode){
     document.body.classList.remove("light");
     document.getElementById("themeBtn").textContent = "LIGHT";
   }
-  localStorage.setItem("mara_theme_v11", mode);
+  localStorage.setItem(KEY_THEME, mode);
 }
 function toggleTheme(){
   const isLight = document.body.classList.contains("light");
@@ -376,263 +670,757 @@ function toggleTheme(){
 }
 
 /* =========================
-   MODAL
-========================= */
-function clearModal(){
-  const ids = ["f_date","f_dep","f_out","f_arr","f_in","f_type","f_reg","f_total","f_night","f_ifr","f_pic","f_rem"];
-  ids.forEach(id => { const el = document.getElementById(id); if(el) el.value=""; });
-  document.getElementById("f_name").value = "SELF";
-  document.getElementById("f_ldg_day").value = "0";
-  document.getElementById("f_ldg_night").value = "0";
-}
-function openModal(){
-  clearModal();
-  document.getElementById("overlay").classList.add("open");
-  setTimeout(()=> document.getElementById("f_date").focus(), 50);
-}
-function closeModal(){
-  document.getElementById("overlay").classList.remove("open");
-}
-function overlayClick(e){
-  if(e.target && e.target.id === "overlay") closeModal();
-}
+   Time utils
+   ========================= */
+let _lastTimeValue = "";
 
-/* =========================
-   PAGE
-========================= */
-function maxPage(){
-  return Math.max(1, Math.ceil(flights.length / ROWS_PER_PAGE));
+function toMins(hhmm){
+  if(!hhmm) return 0;
+  const s = String(hhmm).trim();
+  if(!s) return 0;
+  if(s.includes(":")){
+    const parts = s.split(":");
+    return (parseInt(parts[0],10)||0)*60 + (parseInt(parts[1],10)||0);
+  }
+  const d = s.replace(/[^0-9]/g,"");
+  if(d.length===4){
+    return (parseInt(d.slice(0,2),10)||0)*60 + (parseInt(d.slice(2),10)||0);
+  }
+  return 0;
 }
-function setPage(p){
-  const m = maxPage();
-  if(p < 1 || p > m) return;
-  currentPage = p;
-  render();
-}
-
-/* =========================
-   TIME UTILS
-========================= */
-function toMin(hm){
-  const s = String(hm||"").trim();
-  const m = s.match(/^(\d+):(\d{2})$/);
-  if(!m) return 0;
-  return (parseInt(m[1],10)||0)*60 + (parseInt(m[2],10)||0);
-}
-function fmtMin(min){
-  const h = Math.floor(min/60);
-  const mm = min%60;
+function fmtMins(m){
+  if(!m || m<=0) return "0:00";
+  const h = Math.floor(m/60);
+  const mm = m%60;
   return h + ":" + (mm<10?"0":"") + mm;
 }
+function parseHHMM(s){
+  s = String(s||"").trim().replace(":","");
+  if(s.length===3) s = "0"+s;
+  if(s.length!==4) return null;
+  const h = parseInt(s.slice(0,2),10);
+  const m = parseInt(s.slice(2),10);
+  if(Number.isNaN(h)||Number.isNaN(m)||h>23||m>59) return null;
+  return h*60+m;
+}
+function calcBlock(outHHMM, inHHMM){
+  const o = parseHHMM(outHHMM);
+  const i0 = parseHHMM(inHHMM);
+  if(o===null || i0===null) return null;
+  let i=i0;
+  if(i<o) i += 1440;
+  return i-o;
+}
+function isTimeHM(s){
+  return /^\d+:\d{2}$/.test(String(s||"").trim());
+}
+function normalizeHM(v){
+  const s = String(v||"").trim();
+  if(!s) return "";
+  if(s.includes(":")){
+    const parts = s.split(":");
+    const hh = parseInt(parts[0],10);
+    const mm = parseInt(parts[1],10);
+    if(Number.isNaN(hh) || Number.isNaN(mm) || mm>59) return up(s);
+    return String(hh) + ":" + (mm<10?"0":"") + String(mm);
+  }
+  const d = s.replace(/[^0-9]/g,"");
+  if(d.length===4){
+    const hh = parseInt(d.slice(0,2),10);
+    const mm = parseInt(d.slice(2),10);
+    if(mm>59) return "";
+    return String(hh) + ":" + (mm<10?"0":"") + String(mm);
+  }
+  if(d.length===3){
+    const hh = parseInt(d.slice(0,1),10);
+    const mm = parseInt(d.slice(1),10);
+    if(mm>59) return "";
+    return String(hh) + ":" + (mm<10?"0":"") + String(mm);
+  }
+  return up(s);
+}
+
+const TIME_KEYS = ["total","night","ifr","pic","cop","dual","fi","simTotal"];
+const PREV_TIME_KEYS = ["total","night","ifr","pic","cop","dual","fi","fstd"];
 
 /* =========================
-   ROW RULE:
-   - CREATE row ONLY if editing DATE / DEP / ARR
-   - IGNORE edits in other columns until row exists
-========================= */
-const CREATE_KEYS = new Set(["date","dep","arr","out","in"]);
+   Totals panel toggle
+   ========================= */
+function setTotalsOpen(open){
+  const p = document.getElementById("totalsPanel");
+  if(open) p.classList.add("open");
+  else p.classList.remove("open");
+  localStorage.setItem(KEY_TOTALS_OPEN, open ? "1" : "0");
+}
 
-function ensureRow(i){
-  if(flights[i]) return;
-  flights[i] = {
-    date:"", dep:"", out:"", arr:"", in:"",
-    type:"", reg:"", name:"SELF",
-    total:"", night:"", ifr:"", pic:"",
+/* =========================
+   Previous totals UI
+   ========================= */
+const prevFields = [
+  ["total","TOTAL FLIGHT"],
+  ["night","NIGHT"],
+  ["ifr","IFR"],
+  ["pic","PIC"],
+  ["cop","CO-PILOT"],
+  ["dual","DUAL"],
+  ["fi","FI"],
+  ["fstd","FSTD TOTAL"],
+  ["ldg_day","DAY LDG"],
+  ["ldg_night","NIGHT LDG"]
+];
+
+function renderPrev(){
+  const grid = document.getElementById("prevGrid");
+  grid.innerHTML = "";
+
+  prevFields.forEach(([k,label])=>{
+    const d = document.createElement("div");
+    d.className="field";
+    const ph = k.includes("ldg") ? "0" : "H:MM";
+    d.innerHTML = '<label>'+label+'</label><input id="prev_'+k+'" value="'+escapeHTML(prev[k]??"")+'" placeholder="'+ph+'">';
+    grid.appendChild(d);
+
+    const el = d.querySelector("input");
+
+    el.addEventListener("input", ()=>{
+      if(!k.includes("ldg")) el.value = up(el.value);
+      prev[k] = el.value;
+      saveJSON(KEY_PREV, prev);
+      render();
+    });
+
+    el.addEventListener("blur", ()=>{
+      if(!k.includes("ldg")) el.value = up(el.value);
+      if(PREV_TIME_KEYS.includes(k)){
+        const norm = normalizeHM(el.value);
+        if(norm) el.value = norm;
+        if(isTimeHM(el.value)) _lastTimeValue = el.value;
+        prev[k] = el.value;
+        saveJSON(KEY_PREV, prev);
+        render();
+      }
+    });
+  });
+}
+
+/* =========================
+   Cell helper
+   ========================= */
+function cellInput(idx, key, val, ph, cls){
+  const c = ("cell " + (cls||"")).trim();
+  const v = (val===undefined || val===null) ? "" : String(val);
+  return '<input class="'+c+'" value="'+escapeHTML(v)+'" placeholder="'+escapeHTML(ph||"")+'" '+
+    'oninput="onCell('+idx+', \''+key+'\', this.value, this)" '+
+    'onblur="onCellBlur('+idx+', \''+key+'\', this)" '+
+    'onkeydown="onCellKeyDown(event, '+idx+', \''+key+'\', this)">';
+}
+
+/* =========================
+   Row creation rules
+   - create row ONLY if DATE or DEP/ARR is typed
+   - ignore PIC/LDG/etc typing if row does not exist
+   ========================= */
+const CREATE_KEYS = ["date","depPlace","arrPlace"];  // ONLY THESE create a row
+
+function makeEmptyRow(){
+  return {
+    id: Date.now() + Math.floor(Math.random()*100000),
+    date:"", depPlace:"", out:"", arrPlace:"", in:"",
+    acType:"", acReg:"", name:"SELF",
+    total:"",
     ldgDay:"0", ldgNight:"0",
+    night:"", ifr:"", pic:"", cop:"", dual:"", fi:"",
+    simDate:"", simType:"", simTotal:"",
     remarks:""
   };
 }
 
-function setCell(i, key, rawValue){
-  const value = String(rawValue || "").toUpperCase();
+function ensureRowIfAllowed(i, key, value){
+  if(flights[i]) return true;
+  const hasValue = !!String(value||"").trim();
+  if(!hasValue) return false;
+  if(!CREATE_KEYS.includes(key)) return false;
+  flights[i] = makeEmptyRow();
+  return true;
+}
 
-  if(!flights[i] && !CREATE_KEYS.has(key)){
-    return; // ignore until flight exists
-  }
-  if(!flights[i] && CREATE_KEYS.has(key)){
-    // only create when meaningful (DATE or DEP/ARR typed)
-    if((key==="date" || key==="dep" || key==="arr") && value.trim()==="") return;
-    ensureRow(i);
+function onCell(i, key, value, el){
+  // if row doesn't exist, only allow DATE/DEP/ARR to create it
+  const ok = ensureRowIfAllowed(i, key, value);
+  if(!ok){
+    // ignore typing into other columns until flight exists
+    if(el) el.value = "";
+    return;
   }
 
-  flights[i][key] = value;
-  persist();
+  const f = flights[i];
+  f[key] = up(value);
+
+  // normalize times for out/in into digits
+  if(key==="out" || key==="in"){
+    const digits = String(f[key]||"").replace(/[^0-9]/g,"");
+    f[key] = digits;
+  }
+
+  // auto fill block total/ifr/pic if missing
+  if(key==="out" || key==="in"){
+    const block = calcBlock(f.out, f.in);
+    if(block!==null){
+      const blockStr = fmtMins(block);
+      if(!f.total) f.total = blockStr;
+      if(!f.ifr) f.ifr = blockStr;
+      if(!f.pic) f.pic = blockStr;
+    }
+  }
+
+  saveJSON(KEY_FLIGHTS, flights);
+  render(false);
+}
+
+function onCellBlur(i, key, el){
+  el.value = up(el.value);
+
+  // if row doesn't exist and this key can't create, wipe on blur
+  if(!flights[i] && !CREATE_KEYS.includes(key)){
+    el.value = "";
+    return;
+  }
+
+  if(TIME_KEYS.includes(key)){
+    const norm = normalizeHM(el.value);
+    if(norm) el.value = norm;
+    if(isTimeHM(el.value)) _lastTimeValue = el.value;
+  }
+
+  if(key==="out" || key==="in"){
+    el.value = String(el.value||"").replace(/[^0-9]/g,"");
+  }
+
+  onCell(i, key, el.value, el);
+}
+
+function onCellKeyDown(e, i, key, el){
+  if(e.key !== "Tab") return;
+  const empty = !String(el.value||"").trim();
+  if(empty && TIME_KEYS.includes(key) && isTimeHM(_lastTimeValue)){
+    // only if row exists
+    if(!flights[i]) return;
+    el.value = _lastTimeValue;
+    onCell(i, key, el.value, el);
+  }
 }
 
 /* =========================
-   RENDER
-========================= */
-function render(){
+   Page rules:
+   - do NOT allow NEXT page if this page has any empty rows
+   - no alerts, button is disabled
+   ========================= */
+function pageHasAllRows(page){
+  const start = (page - 1) * ROWS_PER_PAGE;
+  const end = start + ROWS_PER_PAGE;
+  for(let i=start; i<end; i++){
+    if(!flights[i]) return false;
+  }
+  return true;
+}
+
+function setPage(p){
+  const maxPage = Math.max(1, Math.ceil(Math.max(flights.length, ROWS_PER_PAGE) / ROWS_PER_PAGE));
+  const next = Math.max(1, Math.min(p, maxPage));
+
+  // block going forward if current page incomplete
+  if(next > currentPage && !pageHasAllRows(currentPage)){
+    return;
+  }
+
+  currentPage = next;
+  localStorage.setItem(KEY_PAGE, String(currentPage));
+  render(true);
+}
+
+function clearRow(index){
+  if(!confirm("CLEAR THIS ROW?")) return;
+  flights[index] = null;
+  saveJSON(KEY_FLIGHTS, flights);
+  render(true);
+}
+
+/* =========================
+   Render
+   ========================= */
+function render(forceButtons=true){
   const tbody = document.getElementById("tbody");
   tbody.innerHTML = "";
 
-  const start = (currentPage-1)*ROWS_PER_PAGE;
+  const start = (currentPage - 1) * ROWS_PER_PAGE;
   const end = start + ROWS_PER_PAGE;
 
-  if(flights.length < end){
-    for(let i=flights.length; i<end; i++) flights.push(null);
-    persist();
+  // ensure array has slots up to end (null placeholders)
+  if (flights.length < end) {
+    for (let i = flights.length; i < end; i++) flights.push(null);
+    saveJSON(KEY_FLIGHTS, flights);
   }
 
-  let sumTotal=0, sumIFR=0, sumPIC=0;
+  let sum = { total:0, ldgDay:0, ldgNight:0, night:0, ifr:0, pic:0, cop:0, dual:0, fi:0, fstd:0 };
 
   for(let r=0; r<ROWS_PER_PAGE; r++){
     const idx = start + r;
     const f = flights[idx];
 
+    if(f){
+      sum.total += toMins(f.total);
+      sum.ldgDay += (parseInt(f.ldgDay,10)||0);
+      sum.ldgNight += (parseInt(f.ldgNight,10)||0);
+      sum.night += toMins(f.night);
+      sum.ifr += toMins(f.ifr);
+      sum.pic += toMins(f.pic);
+      sum.cop += toMins(f.cop);
+      sum.dual += toMins(f.dual);
+      sum.fi += toMins(f.fi);
+      sum.fstd += toMins(f.simTotal);
+    }
+
+    const v = (key) => (f && f[key]) ? f[key] : "";
     const tr = document.createElement("tr");
 
-    const v = (k)=> (f && f[k]) ? f[k] : "";
+    tr.innerHTML =
+      '<td>'+cellInput(idx,"date", v("date"), "DD.MM.YY", "")+'</td>'+
+      '<td>'+cellInput(idx,"depPlace", v("depPlace"), "ICAO", "upper")+'</td>'+
+      '<td>'+cellInput(idx,"out", v("out"), "HHMM", "time")+'</td>'+
+      '<td>'+cellInput(idx,"arrPlace", v("arrPlace"), "ICAO", "upper")+'</td>'+
+      '<td>'+cellInput(idx,"in", v("in"), "HHMM", "time")+'</td>'+
+      '<td>'+cellInput(idx,"acType", v("acType"), "B781", "upper")+'</td>'+
+      '<td>'+cellInput(idx,"acReg", v("acReg"), "B-17806", "upper")+'</td>'+
+      '<td>'+cellInput(idx,"name", v("name"), "SELF", "upper")+'</td>'+
 
-    tr.innerHTML = `
-      <td><input class="cell" data-i="${idx}" data-k="date" value="${v("date")}" placeholder="DD.MM"></td>
-      <td><input class="cell" data-i="${idx}" data-k="dep"  value="${v("dep")}"  placeholder="ICAO"></td>
-      <td><input class="cell" data-i="${idx}" data-k="out"  value="${v("out")}"  placeholder="HHMM"></td>
-      <td><input class="cell" data-i="${idx}" data-k="arr"  value="${v("arr")}"  placeholder="ICAO"></td>
-      <td><input class="cell" data-i="${idx}" data-k="in"   value="${v("in")}"   placeholder="HHMM"></td>
-      <td><input class="cell" data-i="${idx}" data-k="type" value="${v("type")}" placeholder="TYPE"></td>
-      <td><input class="cell" data-i="${idx}" data-k="reg"  value="${v("reg")}"  placeholder="REG"></td>
-      <td><input class="cell" data-i="${idx}" data-k="name" value="${v("name") || "SELF"}" placeholder="SELF"></td>
-      <td><input class="cell" data-i="${idx}" data-k="total" value="${v("total")}" placeholder="H:MM"></td>
-      <td><input class="cell" data-i="${idx}" data-k="ldgDay" value="${v("ldgDay")||"0"}" placeholder="0"></td>
-      <td><input class="cell" data-i="${idx}" data-k="ldgNight" value="${v("ldgNight")||"0"}" placeholder="0"></td>
-      <td><input class="cell" data-i="${idx}" data-k="night" value="${v("night")}" placeholder="H:MM"></td>
-      <td><input class="cell" data-i="${idx}" data-k="ifr" value="${v("ifr")}" placeholder="H:MM"></td>
-      <td><input class="cell" data-i="${idx}" data-k="pic" value="${v("pic")}" placeholder="H:MM"></td>
-      <td><input class="cell" data-i="${idx}" data-k="remarks" value="${v("remarks")}" placeholder=""></td>
-      <td>${f ? `<button class="del" data-del="${idx}">×</button>` : ""}</td>
-    `;
+      '<td>'+cellInput(idx,"total", v("total"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(idx,"ldgDay", v("ldgDay"), "0", "small")+'</td>'+
+      '<td>'+cellInput(idx,"ldgNight", v("ldgNight"), "0", "small")+'</td>'+
+
+      '<td>'+cellInput(idx,"night", v("night"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(idx,"ifr", v("ifr"), "H:MM", "")+'</td>'+
+
+      '<td>'+cellInput(idx,"pic", v("pic"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(idx,"cop", v("cop"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(idx,"dual", v("dual"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(idx,"fi", v("fi"), "H:MM", "")+'</td>'+
+
+      '<td>'+cellInput(idx,"simDate", v("simDate"), "DD.MM.YY", "small")+'</td>'+
+      '<td>'+cellInput(idx,"simType", v("simType"), "TYPE", "small upper")+'</td>'+
+      '<td>'+cellInput(idx,"simTotal", v("simTotal"), "H:MM", "small")+'</td>'+
+
+      '<td>'+cellInput(idx,"remarks", v("remarks"), "", "")+'</td>'+
+      '<td>'+(f ? '<button class="del" type="button" onclick="clearRow('+idx+')">×</button>' : '')+'</td>';
 
     tbody.appendChild(tr);
-
-    if(f){
-      sumTotal += toMin(f.total);
-      sumIFR   += toMin(f.ifr);
-      sumPIC   += toMin(f.pic);
-    }
   }
 
-  document.getElementById("tfoot").innerHTML = `
-    <tr class="total-row">
-      <td class="tfLabel" colspan="8">TOTAL FROM THIS PAGE</td>
-      <td>${fmtMin(sumTotal)}</td>
-      <td colspan="3"></td>
-      <td>${fmtMin(sumIFR)}</td>
-      <td>${fmtMin(sumPIC)}</td>
-      <td colspan="2"></td>
-    </tr>
-  `;
+  /* previous totals */
+  const p = {
+    total: toMins(prev.total),
+    night: toMins(prev.night),
+    ifr: toMins(prev.ifr),
+    pic: toMins(prev.pic),
+    cop: toMins(prev.cop),
+    dual: toMins(prev.dual),
+    fi: toMins(prev.fi),
+    ldgDay: parseInt(prev.ldg_day,10)||0,
+    ldgNight: parseInt(prev.ldg_night,10)||0,
+    fstd: toMins(prev.fstd)
+  };
 
-  document.getElementById("pageLabel").textContent = "PAGE " + currentPage + " / " + maxPage();
+  const grand = {
+    total: sum.total + p.total,
+    night: sum.night + p.night,
+    ifr: sum.ifr + p.ifr,
+    pic: sum.pic + p.pic,
+    cop: sum.cop + p.cop,
+    dual: sum.dual + p.dual,
+    fi: sum.fi + p.fi,
+    ldgDay: sum.ldgDay + p.ldgDay,
+    ldgNight: sum.ldgNight + p.ldgNight,
+    fstd: sum.fstd + p.fstd
+  };
+
+  document.getElementById("k_total").textContent = fmtMins(grand.total);
+  document.getElementById("k_pic").textContent   = fmtMins(grand.pic);
+  document.getElementById("k_night").textContent = fmtMins(grand.night);
+  document.getElementById("k_ifr").textContent   = fmtMins(grand.ifr);
+
+  const maxPage = Math.max(1, Math.ceil(flights.length / ROWS_PER_PAGE));
+  if(currentPage > maxPage) currentPage = maxPage;
+  document.getElementById("pageLabel").textContent = "PAGE " + currentPage + " / " + maxPage;
+
+  document.getElementById("tfoot").innerHTML =
+    '<tr class="total-this">'+
+      '<td class="tfLabel" colspan="8">TOTAL FROM THIS PAGE</td>'+
+      '<td>'+(sum.total?fmtMins(sum.total):"—")+'</td>'+
+      '<td>'+(sum.ldgDay||"—")+'</td>'+
+      '<td>'+(sum.ldgNight||"—")+'</td>'+
+      '<td>'+(sum.night?fmtMins(sum.night):"—")+'</td>'+
+      '<td>'+(sum.ifr?fmtMins(sum.ifr):"—")+'</td>'+
+      '<td>'+(sum.pic?fmtMins(sum.pic):"—")+'</td>'+
+      '<td>'+(sum.cop?fmtMins(sum.cop):"—")+'</td>'+
+      '<td>'+(sum.dual?fmtMins(sum.dual):"—")+'</td>'+
+      '<td>'+(sum.fi?fmtMins(sum.fi):"—")+'</td>'+
+      '<td colspan="2">—</td>'+
+      '<td>'+(sum.fstd?fmtMins(sum.fstd):"—")+'</td>'+
+      '<td></td><td></td>'+
+    '</tr>'+
+
+    '<tr class="total-prev">'+
+      '<td class="tfLabel" colspan="8">TOTAL FROM PREVIOUS PAGE</td>'+
+      '<td>'+(p.total?fmtMins(p.total):"—")+'</td>'+
+      '<td>'+(p.ldgDay||"—")+'</td>'+
+      '<td>'+(p.ldgNight||"—")+'</td>'+
+      '<td>'+(p.night?fmtMins(p.night):"—")+'</td>'+
+      '<td>'+(p.ifr?fmtMins(p.ifr):"—")+'</td>'+
+      '<td>'+(p.pic?fmtMins(p.pic):"—")+'</td>'+
+      '<td>'+(p.cop?fmtMins(p.cop):"—")+'</td>'+
+      '<td>'+(p.dual?fmtMins(p.dual):"—")+'</td>'+
+      '<td>'+(p.fi?fmtMins(p.fi):"—")+'</td>'+
+      '<td colspan="2">—</td>'+
+      '<td>'+(p.fstd?fmtMins(p.fstd):"—")+'</td>'+
+      '<td></td><td></td>'+
+    '</tr>'+
+
+    '<tr class="grand">'+
+      '<td class="tfLabel" colspan="8">■ TOTAL TO DATE</td>'+
+      '<td>'+(grand.total?fmtMins(grand.total):"—")+'</td>'+
+      '<td>'+(grand.ldgDay||"—")+'</td>'+
+      '<td>'+(grand.ldgNight||"—")+'</td>'+
+      '<td>'+(grand.night?fmtMins(grand.night):"—")+'</td>'+
+      '<td>'+(grand.ifr?fmtMins(grand.ifr):"—")+'</td>'+
+      '<td>'+(grand.pic?fmtMins(grand.pic):"—")+'</td>'+
+      '<td>'+(grand.cop?fmtMins(grand.cop):"—")+'</td>'+
+      '<td>'+(grand.dual?fmtMins(grand.dual):"—")+'</td>'+
+      '<td>'+(grand.fi?fmtMins(grand.fi):"—")+'</td>'+
+      '<td colspan="2">—</td>'+
+      '<td>'+(grand.fstd?fmtMins(grand.fstd):"—")+'</td>'+
+      '<td></td><td></td>'+
+    '</tr>';
+
+  saveJSON(KEY_FLIGHTS, flights);
+
+  if(forceButtons){
+    updateNavButtons();
+  }
+}
+
+function updateNavButtons(){
+  const btnNext = document.getElementById("btnNext");
+  const btnPrev = document.getElementById("btnPrev");
+
+  const maxPage = Math.max(1, Math.ceil(flights.length / ROWS_PER_PAGE));
+  const canGoPrev = currentPage > 1;
+  const canGoNext = currentPage < maxPage && pageHasAllRows(currentPage);
+
+  btnPrev.classList.toggle("disabled", !canGoPrev);
+  btnNext.classList.toggle("disabled", !canGoNext);
+
+  btnPrev.disabled = !canGoPrev;
+  btnNext.disabled = !canGoNext;
 }
 
 /* =========================
-   SAVE FROM MODAL
-========================= */
-function saveFromModal(){
-  const get = id => (document.getElementById(id).value || "").toUpperCase().trim();
+   Modal
+   ========================= */
+function clearModalFields(){
+  const ids = [
+    "f_date","f_name","f_dep","f_out","f_arr","f_in","f_type","f_reg",
+    "f_total","f_night","f_ifr","f_pic","f_cop","f_dual","f_fi",
+    "f_ldg_day","f_ldg_night","f_sim_date","f_sim_type","f_sim_total","f_rem"
+  ];
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(id==="f_name") el.value = "SELF";
+    else if(id==="f_ldg_day" || id==="f_ldg_night") el.value = "0";
+    else el.value = "";
+  });
+}
 
-  // only create flight if DATE or DEP/ARR entered
-  if(!(get("f_date") || get("f_dep") || get("f_arr"))){
-    alert("ENTER DATE OR DEP/ARR");
+function openModal(){
+  clearModalFields();
+  document.getElementById("overlay").classList.add("open");
+  renderAttachPreview();
+  setTimeout(()=>{
+    const d = document.getElementById("f_date");
+    if(d){ d.focus(); d.select(); }
+  }, 80);
+}
+function closeModal(){
+  document.getElementById("overlay").classList.remove("open");
+}
+
+function saveFromModal(){
+  const get = id => up(document.getElementById(id).value.trim());
+
+  // minimal requirement
+  const date = get("f_date");
+  const dep  = get("f_dep");
+  const arr  = get("f_arr");
+  if(!date && !dep && !arr){
+    // do nothing if user didn’t enter core fields
+    closeModal();
     return;
   }
 
-  const row = {
-    date:get("f_date"),
-    dep:get("f_dep"),
-    out:get("f_out").replace(/[^0-9]/g,""),
-    arr:get("f_arr"),
-    in:get("f_in").replace(/[^0-9]/g,""),
-    type:get("f_type"),
-    reg:get("f_reg"),
-    name:get("f_name") || "SELF",
-    total:get("f_total"),
-    night:get("f_night"),
-    ifr:get("f_ifr"),
-    pic:get("f_pic"),
-    ldgDay:String(document.getElementById("f_ldg_day").value || "0"),
-    ldgNight:String(document.getElementById("f_ldg_night").value || "0"),
-    remarks:get("f_rem")
-  };
+  const out = String(get("f_out")).replace(/[^0-9]/g,"");
+  const inn = String(get("f_in")).replace(/[^0-9]/g,"");
+  const block = calcBlock(out, inn);
+  const blockStr = block!==null ? fmtMins(block) : "";
 
-  const start = (currentPage-1)*ROWS_PER_PAGE;
+  const total = normalizeHM(get("f_total")) || blockStr;
+  const ifr   = normalizeHM(get("f_ifr")) || total;
+  const pic   = normalizeHM(get("f_pic")) || total;
+
+  const row = makeEmptyRow();
+  row.date = date;
+  row.depPlace = dep;
+  row.out = out;
+  row.arrPlace = arr;
+  row.in = inn;
+  row.acType = get("f_type");
+  row.acReg = get("f_reg");
+  row.name = get("f_name") || "SELF";
+  row.total = total;
+  row.ldgDay = String(document.getElementById("f_ldg_day").value || "0").trim();
+  row.ldgNight = String(document.getElementById("f_ldg_night").value || "0").trim();
+  row.night = normalizeHM(get("f_night"));
+  row.ifr = ifr;
+  row.pic = pic;
+  row.cop = normalizeHM(get("f_cop"));
+  row.dual = normalizeHM(get("f_dual"));
+  row.fi = normalizeHM(get("f_fi"));
+  row.simDate = get("f_sim_date");
+  row.simType = get("f_sim_type");
+  row.simTotal = normalizeHM(get("f_sim_total"));
+  row.remarks = get("f_rem");
+
+  const start = (currentPage - 1) * ROWS_PER_PAGE;
   const end = start + ROWS_PER_PAGE;
 
-  // ensure page exists
-  if(flights.length < end){
-    for(let i=flights.length; i<end; i++) flights.push(null);
-  }
+  if (flights.length < end) for (let i = flights.length; i < end; i++) flights.push(null);
 
-  // place only into empty slot on current page
-  let placed=false;
-  for(let i=start;i<end;i++){
+  let placed = false;
+  for(let i=start; i<end; i++){
     if(!flights[i]){
-      flights[i]=row;
-      placed=true;
+      flights[i] = row;
+      placed = true;
       break;
     }
   }
+
+  // If page full, create next page ONLY if current page is complete
   if(!placed){
-    alert("PAGE FULL — FILL ALL 10 ROWS BEFORE NEXT PAGE");
-    return;
+    if(!pageHasAllRows(currentPage)){
+      // shouldn't happen, but just in case:
+      closeModal();
+      return;
+    }
+    currentPage += 1;
+    localStorage.setItem(KEY_PAGE, String(currentPage));
+    const ns = (currentPage - 1) * ROWS_PER_PAGE;
+    const ne = ns + ROWS_PER_PAGE;
+    if (flights.length < ne) for (let i = flights.length; i < ne; i++) flights.push(null);
+    flights[ns] = row;
   }
 
-  persist();
+  if(isTimeHM(row.total)) _lastTimeValue = row.total;
+  if(isTimeHM(row.simTotal)) _lastTimeValue = row.simTotal;
+
+  saveJSON(KEY_FLIGHTS, flights);
   closeModal();
-  render();
+  clearModalFields();
+  render(true);
 }
 
 /* =========================
-   EVENTS (NO INLINE JS)
-========================= */
-document.getElementById("addBtn").addEventListener("click", openModal);
-document.getElementById("closeBtn").addEventListener("click", closeModal);
-document.getElementById("cancelBtn").addEventListener("click", closeModal);
-document.getElementById("saveBtn").addEventListener("click", saveFromModal);
-document.getElementById("overlay").addEventListener("click", overlayClick);
-
-document.getElementById("themeBtn").addEventListener("click", toggleTheme);
-document.getElementById("prevBtn").addEventListener("click", ()=>setPage(currentPage-1));
-document.getElementById("nextBtn").addEventListener("click", ()=>setPage(currentPage+1));
-
-document.getElementById("tbody").addEventListener("input", (e)=>{
-  const t = e.target;
-  if(!(t instanceof HTMLInputElement)) return;
-  if(!t.dataset.i || !t.dataset.k) return;
-
-  const i = parseInt(t.dataset.i,10);
-  const k = t.dataset.k;
-
-  setCell(i, k, t.value);
-  // do not rerender on every keystroke (keeps typing smooth)
+   Attachments (local preview only)
+   ========================= */
+document.getElementById("photoInput").addEventListener("change", (e)=>{
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    attach.photoDataUrl = String(r.result || "");
+    saveJSON(KEY_ATTACH, attach);
+    renderAttachPreview();
+  };
+  r.readAsDataURL(file);
 });
-
-document.getElementById("tbody").addEventListener("blur", (e)=>{
-  const t = e.target;
-  if(!(t instanceof HTMLInputElement)) return;
-  // uppercase on blur
-  t.value = (t.value || "").toUpperCase();
-  const i = parseInt(t.dataset.i,10);
-  const k = t.dataset.k;
-  setCell(i, k, t.value);
-  render();
-}, true);
-
-document.getElementById("tbody").addEventListener("click", (e)=>{
-  const btn = e.target;
-  if(!(btn instanceof HTMLElement)) return;
-  const del = btn.getAttribute("data-del");
-  if(!del) return;
-  const idx = parseInt(del,10);
-  flights[idx] = null;
-  persist();
-  render();
+document.getElementById("pdfInput").addEventListener("change", (e)=>{
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  attach.pdfName = up(file.name || "LOGBOOK.PDF");
+  saveJSON(KEY_ATTACH, attach);
+  renderAttachPreview();
 });
+function renderAttachPreview(){
+  const p = document.getElementById("photoPrev");
+  if(attach.photoDataUrl){
+    p.style.display = "block";
+    p.innerHTML = '<img src="'+attach.photoDataUrl+'" alt="PHOTO PREVIEW">';
+  }else{
+    p.style.display = "none";
+    p.innerHTML = "";
+  }
+  document.getElementById("pdfName").textContent = attach.pdfName ? ("SELECTED PDF: " + attach.pdfName) : "";
+}
 
-/* INIT */
-applyTheme(localStorage.getItem("mara_theme_v11") || "dark");
-render();
+/* =========================
+   Backup / Restore
+   ========================= */
+function exportBackup(){
+  const payload = {
+    flights, prev,
+    theme: document.body.classList.contains("light") ? "light" : "dark",
+    page: currentPage,
+    totalsOpen: document.getElementById("totalsPanel").classList.contains("open") ? 1 : 0
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "MARA-LOGBOOK-BACKUP.JSON";
+  a.click();
+}
+function importBackup(){
+  const input = document.createElement("input");
+  input.type="file";
+  input.accept=".json,application/json";
+  input.onchange = ()=>{
+    const file = input.files && input.files[0];
+    if(!file) return;
+    const r = new FileReader();
+    r.onload = ()=>{
+      try{
+        const obj = JSON.parse(String(r.result||"{}"));
+        if(Array.isArray(obj.flights)) flights = obj.flights;
+        if(obj.prev) prev = obj.prev;
+
+        saveJSON(KEY_FLIGHTS, flights);
+        saveJSON(KEY_PREV, prev);
+
+        applyTheme(obj.theme === "light" ? "light" : "dark");
+        currentPage = parseInt(obj.page || "1", 10) || 1;
+        localStorage.setItem(KEY_PAGE, String(currentPage));
+
+        setTotalsOpen(!!obj.totalsOpen);
+
+        renderPrev();
+        render(true);
+      }catch(e){
+        alert("BACKUP FILE NOT VALID.");
+      }
+    };
+    r.readAsText(file);
+  };
+  input.click();
+}
+
+/* =========================
+   Import sample 10 flights
+   ========================= */
+function seedFromPhoto(){
+  if(!confirm("IMPORT SAMPLE 10 FLIGHTS INTO PAGE 1?")) return;
+
+  const seeded = [
+    {date:"23.11.25", depPlace:"RCTP", out:"1300", arrPlace:"VTBS", in:"1642", acType:"B781", acReg:"B-17812", name:"SELF", total:"3:42", night:"3:42", ifr:"3:42", pic:"3:42", ldgDay:"0", ldgNight:"0"},
+    {date:"24.11.25", depPlace:"VTBS", out:"1957", arrPlace:"RCTP", in:"2329", acType:"B781", acReg:"B-17810", name:"SELF", total:"3:32", night:"2:32", ifr:"3:32", pic:"3:32", ldgDay:"1", ldgNight:"0"},
+    {date:"26.11.25", depPlace:"RCTP", out:"0735", arrPlace:"RKSI", in:"0957", acType:"B789", acReg:"B-17883", name:"SELF", total:"2:22", night:"2:22", ifr:"2:22", pic:"2:22", ldgDay:"0", ldgNight:"1"},
+    {date:"26.11.25", depPlace:"RKSI", out:"1114", arrPlace:"RCTP", in:"1415", acType:"B789", acReg:"B-17883", name:"SELF", total:"3:01", night:"",    ifr:"3:01", pic:"3:01", ldgDay:"0", ldgNight:"0"},
+    {date:"01.12.25", depPlace:"RCTP", out:"0732", arrPlace:"RKSI", in:"0951", acType:"B781", acReg:"B-17815", name:"SELF", total:"2:19", night:"1:19", ifr:"2:19", pic:"2:19", ldgDay:"0", ldgNight:"1"},
+    {date:"01.12.25", depPlace:"RKSI", out:"1059", arrPlace:"RCTP", in:"1338", acType:"B781", acReg:"B-17815", name:"SELF", total:"2:38", night:"2:38", ifr:"2:38", pic:"2:38", ldgDay:"0", ldgNight:"0"},
+    {date:"04.12.25", depPlace:"VTBS", out:"1945", arrPlace:"LOWW", in:"0649", acType:"B781", acReg:"B-17883", name:"SELF", total:"11:25",night:"7:00", ifr:"11:25",pic:"11:25",ldgDay:"1",ldgNight:"0"},
+    {date:"07.12.25", depPlace:"LOWW", out:"1657", arrPlace:"VTBS", in:"0308", acType:"B781", acReg:"B-17883", name:"SELF", total:"10:11",night:"7:30", ifr:"10:11",pic:"10:11",ldgDay:"0",ldgNight:"0"},
+    {date:"12.12.25", depPlace:"WSSS", out:"1924", arrPlace:"RCTP", in:"2359", acType:"B789", acReg:"B-17887", name:"SELF", total:"4:25", night:"4:25", ifr:"4:25", pic:"4:25", ldgDay:"0", ldgNight:"1"},
+    {date:"17.12.25", depPlace:"RCTP", out:"1153", arrPlace:"KDFW", in:"0112", acType:"B789", acReg:"B-17886", name:"SELF", total:"14:19",night:"5:00", ifr:"14:19",pic:"14:19",ldgDay:"0",ldgNight:"0"}
+  ];
+
+  flights = [];
+  for(let i=0;i<ROWS_PER_PAGE;i++) flights.push(null);
+
+  for(let i=0;i<seeded.length;i++){
+    const x = seeded[i];
+    const row = makeEmptyRow();
+    row.date = up(x.date);
+    row.depPlace = up(x.depPlace);
+    row.out = String(x.out).replace(/[^0-9]/g,"");
+    row.arrPlace = up(x.arrPlace);
+    row.in = String(x.in).replace(/[^0-9]/g,"");
+    row.acType = up(x.acType);
+    row.acReg = up(x.acReg);
+    row.name = up(x.name);
+    row.total = up(x.total);
+    row.ldgDay = String(x.ldgDay);
+    row.ldgNight = String(x.ldgNight);
+    row.night = up(x.night);
+    row.ifr = up(x.ifr);
+    row.pic = up(x.pic);
+    flights[i] = row;
+  }
+
+  currentPage = 1;
+  localStorage.setItem(KEY_PAGE, "1");
+  saveJSON(KEY_FLIGHTS, flights);
+
+  _lastTimeValue = isTimeHM(flights[0]?.total) ? flights[0].total : _lastTimeValue;
+  render(true);
+}
+
+/* =========================
+   Escaping
+   ========================= */
+function escapeHTML(s){
+  return String(s||"").replace(/[&<>"']/g, function(m){
+    return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m] || m);
+  });
+}
+
+/* =========================
+   Wire Buttons (NO inline onclick here)
+   ========================= */
+function wireUI(){
+  document.getElementById("btnPrev").addEventListener("click", ()=>setPage(currentPage-1));
+  document.getElementById("btnNext").addEventListener("click", ()=>setPage(currentPage+1));
+
+  document.getElementById("themeBtn").addEventListener("click", toggleTheme);
+
+  document.getElementById("totalsBtn").addEventListener("click", ()=>{
+    const open = document.getElementById("totalsPanel").classList.contains("open");
+    setTotalsOpen(!open);
+  });
+
+  document.getElementById("addBtn").addEventListener("click", openModal);
+  document.getElementById("backupBtn").addEventListener("click", exportBackup);
+  document.getElementById("restoreBtn").addEventListener("click", importBackup);
+  document.getElementById("pdfBtn").addEventListener("click", ()=>window.print());
+  document.getElementById("seedBtn").addEventListener("click", seedFromPhoto);
+
+  // modal buttons
+  document.getElementById("closeModalBtn").addEventListener("click", closeModal);
+  document.getElementById("cancelBtn").addEventListener("click", closeModal);
+  document.getElementById("saveBtn").addEventListener("click", saveFromModal);
+
+  // overlay click to close (only if clicking outside modal)
+  document.getElementById("overlay").addEventListener("click", (e)=>{
+    if(e.target && e.target.id==="overlay") closeModal();
+  });
+
+  // photo/pdf buttons
+  document.getElementById("photoBtn").addEventListener("click", ()=>document.getElementById("photoInput").click());
+  document.getElementById("pdfBtn2").addEventListener("click", ()=>document.getElementById("pdfInput").click());
+}
+
+/* =========================
+   Init
+   ========================= */
+applyTheme(localStorage.getItem(KEY_THEME) || "dark");
+wireUI();
+renderPrev();
+setTotalsOpen(localStorage.getItem(KEY_TOTALS_OPEN)==="1");
+render(true);
 </script>
 </body>
 </html>
