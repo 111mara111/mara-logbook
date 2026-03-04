@@ -419,18 +419,18 @@ html, body{
 }
   </style>
 </head>
-
 <body>
   <div class="app">
+
     <script>
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+        navigator.serviceWorker.register("./service-worker.js").catch(() => {});
       }
     </script>
 
     <!-- TOPBAR -->
     <div class="topbar">
-      
+
       <div class="brand">
         <div class="title">✈ MARA PILOT LOGBOOK</div>
         <div class="sub">FLIGHT RECORD SYSTEM</div>
@@ -444,18 +444,21 @@ html, body{
       </div>
 
       <div class="actions">
-  <button class="btn small" type="button" onclick="setPage(currentPage-1)">◀</button>
-  <button class="btn" type="button" id="pageLabel" style="min-width:130px">PAGE 1 / 1</button>
-  <button class="btn small" type="button" onclick="setPage(currentPage+1)">▶</button>
+        <button class="btn small" type="button" onclick="setPage(currentPage-1)">◀</button>
+        <button class="btn" type="button" id="pageLabel" style="min-width:130px">PAGE 1 / 1</button>
+        <button class="btn small" type="button" onclick="setPage(currentPage+1)">▶</button>
 
-  <button class="btn" type="button" id="themeBtn" onclick="toggleTheme()">LIGHT</button>
-  <button class="btn gold" type="button" onclick="openModal()">+ ADD FLIGHT</button> 
+        <button class="btn" type="button" id="themeBtn" onclick="toggleTheme()">LIGHT</button>
+        <button class="btn gold" type="button" onclick="openModal()">+ ADD FLIGHT</button>
 
-  <button class="btn" onclick="exportBackup()">BACKUP</button>
-  <button class="btn" onclick="importBackup()">RESTORE</button>
-  <button class="btn" onclick="window.print()">EXPORT PDF</button>
-</div>
-</div> 
+        <button class="btn" type="button" onclick="exportBackup()">BACKUP</button>
+        <button class="btn" type="button" onclick="importBackup()">RESTORE</button>
+        <button class="btn" type="button" onclick="window.print()">EXPORT PDF</button>
+      </div>
+
+    </div>
+    <!-- END TOPBAR -->
+
     <!-- LOGBOOK TABLE -->
     <div class="panel">
       <div class="panel-h">
@@ -495,6 +498,7 @@ html, body{
           </colgroup>
 
           <thead>
+            <!-- your thead stays exactly the same -->
             <tr>
               <th>DATE<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">DD.MM.YY</span></th>
               <th>DEP<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">PLACE</span></th>
@@ -531,7 +535,10 @@ html, body{
         </table>
       </div>
     </div>
+    <!-- END LOGBOOK TABLE -->
+
   </div>
+  <!-- END .app -->
 
   <!-- MODAL -->
   <div class="overlay" id="overlay" onclick="overlayClick(event)">
