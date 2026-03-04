@@ -405,7 +405,6 @@
       <div class="panel-h">
         <div class="left">📋 BASE TOTALS (BEFORE PAGE 1)</div>
         <div class="right">
-          <button class="btn ok" type="button" onclick="seedFromPhoto()">IMPORT (PHOTO PAGE)</button>
           <button class="btn" type="button" onclick="exportBackup()">BACKUP</button>
           <button class="btn" type="button" onclick="importBackup()">RESTORE</button>
           <button class="btn" type="button" onclick="window.print()">EXPORT PDF</button>
@@ -1198,67 +1197,6 @@ function importBackup(){
     r.readAsText(file);
   };
   input.click();
-}
-
-/* =========================
-   Sample import
-   ========================= */
-function seedFromPhoto(){
-  if(!confirm("IMPORT THE 10 SAMPLE FLIGHTS INTO PAGE 1?")) return;
-
-  const seeded = [
-    {date:"23.11", depPlace:"RCTP", out:"1300", arrPlace:"VTBS", in:"1642", acType:"B781", acReg:"B-17812", name:"SELF", total:"3:42", night:"3:42", ifr:"3:42", pic:"3:42", ldgDay:"0", ldgNight:"0"},
-    {date:"24.11", depPlace:"VTBS", out:"1957", arrPlace:"RCTP", in:"2329", acType:"B781", acReg:"B-17810", name:"SELF", total:"3:32", night:"2:32", ifr:"3:32", pic:"3:32", ldgDay:"1", ldgNight:"0"},
-    {date:"26.11", depPlace:"RCTP", out:"0735", arrPlace:"RKSI", in:"0957", acType:"B789", acReg:"B-17883", name:"SELF", total:"2:22", night:"2:22", ifr:"2:22", pic:"2:22", ldgDay:"0", ldgNight:"1"},
-    {date:"26.11", depPlace:"RKSI", out:"1114", arrPlace:"RCTP", in:"1415", acType:"B789", acReg:"B-17883", name:"SELF", total:"3:01", night:"",    ifr:"3:01", pic:"3:01", ldgDay:"0", ldgNight:"0"},
-    {date:"01.12", depPlace:"RCTP", out:"0732", arrPlace:"RKSI", in:"0951", acType:"B781", acReg:"B-17815", name:"SELF", total:"2:19", night:"1:19", ifr:"2:19", pic:"2:19", ldgDay:"0", ldgNight:"1"},
-    {date:"01.12", depPlace:"RKSI", out:"1059", arrPlace:"RCTP", in:"1338", acType:"B781", acReg:"B-17815", name:"SELF", total:"2:38", night:"2:38", ifr:"2:38", pic:"2:38", ldgDay:"0", ldgNight:"0"},
-    {date:"04.12", depPlace:"VTBS", out:"1945", arrPlace:"LOWW", in:"0649", acType:"B781", acReg:"B-17883", name:"SELF", total:"11:25",night:"7:00", ifr:"11:25",pic:"11:25",ldgDay:"1",ldgNight:"0"},
-    {date:"07.12", depPlace:"LOWW", out:"1657", arrPlace:"VTBS", in:"0308", acType:"B781", acReg:"B-17883", name:"SELF", total:"10:11",night:"7:30", ifr:"10:11",pic:"10:11",ldgDay:"0",ldgNight:"0"},
-    {date:"12.12", depPlace:"WSSS", out:"1924", arrPlace:"RCTP", in:"2359", acType:"B789", acReg:"B-17887", name:"SELF", total:"4:25", night:"9:25", ifr:"4:25", pic:"4:25", ldgDay:"0", ldgNight:"1"},
-    {date:"17.12", depPlace:"RCTP", out:"1153", arrPlace:"KDFW", in:"0112", acType:"B789", acReg:"B-17886", name:"SELF", total:"14:19",night:"5:00", ifr:"14:19",pic:"14:19",ldgDay:"0",ldgNight:"0"}
-  ];
-
-  flights = [];
-  for(let i=0;i<ROWS_PER_PAGE;i++) flights.push(null);
-
-  for(let i=0;i<seeded.length;i++){
-    const x = seeded[i];
-    flights[i] = {
-      id: Date.now() + Math.floor(Math.random()*100000),
-      date: up(x.date),
-      depPlace: up(x.depPlace),
-      out: String(x.out).replace(/[^0-9]/g,""),
-      arrPlace: up(x.arrPlace),
-      in: String(x.in).replace(/[^0-9]/g,""),
-      acType: up(x.acType),
-      acReg: up(x.acReg),
-      name: up(x.name),
-
-      total: up(x.total),
-      ldgDay: String(x.ldgDay),
-      ldgNight: String(x.ldgNight),
-
-      night: up(x.night),
-      ifr: up(x.ifr),
-      pic: up(x.pic),
-      cop: "",
-      dual: "",
-      fi: "",
-
-      simDate: "",
-      simType: "",
-      simTotal: "",
-
-      remarks: ""
-    };
-  }
-
-  currentPage = 1;
-  localStorage.setItem(KEY_PAGE, "1");
-  saveJSON(KEY_FLIGHTS, flights);
-
-  render();
 }
 
 /* =========================
