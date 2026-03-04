@@ -63,6 +63,7 @@
 
     *{box-sizing:border-box}
     html,body{height:100%}
+    html,body{overflow-x:hidden;}
     body{
       margin:0;
       font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
@@ -72,34 +73,29 @@
         radial-gradient(900px 700px at 60% 80%, rgba(0,0,0,.35), transparent 60%),
         var(--bg);
       color:var(--ink);
-      overflow-x:hidden;
       -webkit-text-size-adjust: 100%;
     }
 
-    .app{max-width:1500px;margin:0 auto;padding:18px 14px 30px}
+    .app{
+      max-width:1500px;
+      margin:0 auto;
+      padding:18px 14px 30px;
+    }
 
     /* ===== header ===== */
-.topbar{
-  position:sticky; top:10px; z-index:50;
-  border:1px solid var(--line2);
-  background:var(--panel);
-  border-radius:16px;
-  padding:14px;
-  box-shadow:var(--shadow);
-  display:grid;
-  grid-template-columns: 1fr auto 1fr; /* brand | kpis | actions */
-  align-items:center;
-  gap:12px;
-}
+    .topbar{
+      position:sticky;top:10px;z-index:50;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      border:1px solid var(--line2);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.01));
+      backdrop-filter:blur(12px);
+      border-radius:16px;
+      padding:14px 14px;
+      box-shadow:var(--shadow);
+      flex-wrap:wrap;
+    }
 
-    .brand{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-  min-width:220px;
-  max-width:520px;
-  flex:0 0 auto;   /* prevents stretching */
-}
+    .brand{display:flex;flex-direction:column;gap:4px;min-width:220px;max-width:520px}
     .brand .title{
       display:flex;align-items:center;gap:10px;
       font-weight:1000;
@@ -107,7 +103,7 @@
       letter-spacing:4px;
       text-transform:uppercase;
       white-space:nowrap;
-      font-size:clamp(16px, 2.2vw, 19px); /* fixes “too big / too small” across iPad */
+      font-size:clamp(16px, 2.2vw, 19px);
     }
     .brand .sub{
       font-size:11px;
@@ -118,49 +114,58 @@
     }
 
     .kpis{
-  display:grid;
-  grid-template-columns: repeat(2, 170px);
-  gap:12px;
-  justify-content:center;
-  align-content:center;
-}
-.kpi{
-  width:170px;
-  text-align:center;
-  padding:14px 14px;
-  border-radius:16px;
-  background:rgba(255,255,255,.04);
-  border:1px solid var(--line2);
-  box-shadow:0 10px 30px rgba(0,0,0,.18) inset;
-}
+      display:flex;align-items:center;justify-content:center;
+      gap:14px;flex:1;flex-wrap:wrap;min-width:320px;
+    }
+    .kpi{
+      min-width:150px;text-align:center;
+      padding:10px 12px;border-radius:14px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--line2);
+    }
     .kpi .v{
-  font-weight:1000;
-  font-size:26px;
-  letter-spacing:1px;
-  color:var(--gold);
-  font-variant-numeric:tabular-nums;
-}
+      font-weight:1000;
+      font-size:22px;
+      letter-spacing:1px;
+      color:var(--gold);
+      font-variant-numeric:tabular-nums;
+    }
     .kpi .l{
-  margin-top:6px;
-  font-size:10px;
-  letter-spacing:3px;
-  text-transform:uppercase;
-  color:var(--muted);
-  font-weight:1000;
-}
+      margin-top:3px;
+      font-size:11px;
+      letter-spacing:3px;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:1000;
+    }
 
-    ..actions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  justify-content:flex-end;
-  align-items:center;
-}
+    .actions{
+      display:flex;align-items:center;gap:10px;
+      flex-wrap:wrap;justify-content:flex-end;
+    }
+
+    /* IMPORTANT: prevent Safari default white buttons */
+    button{appearance:none;-webkit-appearance:none;background:none;border:none;color:inherit;font:inherit;}
+
+    .btn{
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--ink);
+      padding:10px 14px;
+      font-weight:1000;
+      font-size:12px;
+      letter-spacing:1px;
+      cursor:pointer;
+      transition:transform .12s, background .12s, border-color .12s, opacity .12s;
+      white-space:nowrap;
+      text-transform:uppercase;
+      -webkit-tap-highlight-color: transparent;
+      line-height:1;
+    }
     .btn:hover{transform:translateY(-1px);border-color:rgba(217,187,98,.35)}
     .btn:active{transform:translateY(0);opacity:.9}
     .btn.gold{background:linear-gradient(180deg,var(--gold),var(--gold2));color:#1b1b1b;border-color:transparent}
-    .btn.danger{background:rgba(208,107,95,.12);border-color:rgba(208,107,95,.30);color:var(--danger)}
-    .btn.ok{background:rgba(89,193,141,.12);border-color:rgba(89,193,141,.30);color:var(--ok)}
     .btn.small{padding:9px 12px;min-width:44px}
 
     /* ===== panels ===== */
@@ -169,6 +174,7 @@
       border:1px solid var(--line2);
       background:var(--panel);
       box-shadow:var(--shadow);
+      width:100%;
     }
     .panel-h{
       display:flex;align-items:center;justify-content:space-between;
@@ -182,31 +188,6 @@
       font-size:12px;color:var(--muted);white-space:nowrap;
     }
     .panel-h .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-
-    /* ===== prev totals fields ===== */
-    .prev-grid{
-      padding:14px;
-      display:grid;
-      grid-template-columns:repeat(5, minmax(0,1fr));
-      gap:12px;
-    }
-    .field{display:flex;flex-direction:column;gap:6px}
-    .field label{
-      font-size:10px;letter-spacing:3px;text-transform:uppercase;
-      color:var(--muted);font-weight:1000;
-    }
-    .field input{
-      height:40px;border-radius:12px;border:1px solid var(--line2);
-      background:rgba(255,255,255,.02);
-      color:var(--ink);
-      padding:10px 12px;
-      font-weight:1000;
-      outline:none;
-      font-variant-numeric:tabular-nums;
-      text-transform:uppercase;
-    }
-    body.light .field input{background:rgba(255,255,255,.92)}
-    .field input:focus{border-color:rgba(217,187,98,.45)}
 
     /* ===== table ===== */
     .table-wrap{width:100%;overflow:auto;background:var(--panel2); -webkit-overflow-scrolling:touch;}
@@ -357,21 +338,13 @@
       padding:12px 0 6px;margin-top:6px;
       background:linear-gradient(180deg, transparent, rgba(0,0,0,.18));
     }
-    body.light .modal-actions{background:linear-gradient(180deg, transparent, rgba(255,255,255,.92))
-                             
-    }
+    body.light .modal-actions{background:linear-gradient(180deg, transparent, rgba(255,255,255,.92))}
 
-@media (max-width: 980px){
-  .topbar{
-    grid-template-columns: 1fr;   /* stack */
-    justify-items:center;
-    text-align:center;
-  }
-  .actions{justify-content:center}
-  .brand{align-items:center}
-  .kpis{grid-template-columns: repeat(2, 160px)}
-  .kpi{width:160px}
-}
+    @media (max-width:1100px){.kpis{display:none}}
+    @media (max-width:980px){
+      .modal-b{grid-template-columns:1fr}
+      table{min-width:1600px}
+    }
 
     @media print{
       .topbar,.panel-h .right,.del,.overlay{display:none !important}
@@ -379,63 +352,19 @@
       .panel{box-shadow:none;background:#fff}
       @page{size:A4 landscape;margin:10mm}
     }
-    /* ===== Layout lock (iPad/Mac) ===== */
-
-/* Keep app centered and prevent "panel pushed to the right" */
-.app{
-  width: min(1500px, calc(100vw - 28px));
-  margin: 0 auto;
-}
-
-/* Topbar must be allowed to wrap on smaller widths (iPad) */
-.topbar{
-  flex-wrap: wrap;
-}
-
-/* Left brand should not grow too wide (prevents huge empty left side) */
-.brand{
-  flex: 0 0 auto;
-  min-width: 260px;
-  max-width: 520px;
-}
-
-/* KPI row should flex but also be allowed to wrap nicely */
-.kpis{
-  flex: 1 1 420px;
-  min-width: 0;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-/* Actions must stay together and align right */
-.actions{
-  flex: 0 0 auto;
-  margin-left: auto;
-}
-
-/* Table panel should always take full width below the topbar */
-.panel{
-  width: 100%;
-}
-
-/* Prevent any accidental horizontal overflow causing weird alignment */
-html, body{
-  overflow-x: hidden;
-}
   </style>
 </head>
+
 <body>
   <div class="app">
-
     <script>
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+        navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
       }
     </script>
 
     <!-- TOPBAR -->
     <div class="topbar">
-
       <div class="brand">
         <div class="title">✈ MARA PILOT LOGBOOK</div>
         <div class="sub">FLIGHT RECORD SYSTEM</div>
@@ -460,9 +389,7 @@ html, body{
         <button class="btn" type="button" onclick="importBackup()">RESTORE</button>
         <button class="btn" type="button" onclick="window.print()">EXPORT PDF</button>
       </div>
-
     </div>
-    <!-- END TOPBAR -->
 
     <!-- LOGBOOK TABLE -->
     <div class="panel">
@@ -503,7 +430,6 @@ html, body{
           </colgroup>
 
           <thead>
-            <!-- your thead stays exactly the same -->
             <tr>
               <th>DATE<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">DD.MM.YY</span></th>
               <th>DEP<br><span style="font-size:9px;letter-spacing:1px;opacity:.7;">PLACE</span></th>
@@ -540,10 +466,7 @@ html, body{
         </table>
       </div>
     </div>
-    <!-- END LOGBOOK TABLE -->
-
   </div>
-  <!-- END .app -->
 
   <!-- MODAL -->
   <div class="overlay" id="overlay" onclick="overlayClick(event)">
@@ -568,7 +491,7 @@ html, body{
         <div class="preview" id="photoPrev"></div>
         <div id="pdfName" style="grid-column:1/-1;color:var(--muted);font-weight:1000;letter-spacing:1px;"></div>
 
-        <div class="field"><label>Date (DD.MM.YY)</label><input id="f_date" placeholder="23.11"></div>
+        <div class="field"><label>Date (DD.MM.YY)</label><input id="f_date" placeholder="23.11.25"></div>
         <div class="field"><label>Name(s) PIC</label><input id="f_name" placeholder="SELF"></div>
 
         <div class="field"><label>Dep Place (ICAO)</label><input id="f_dep" placeholder="RCTP"></div>
@@ -613,7 +536,7 @@ html, body{
    Storage + State
    ========================= */
 const KEY_FLIGHTS = "mara_book_flights_v7";
-const KEY_PREV    = "mara_book_base_v7";
+const KEY_PREV    = "mara_book_base_v7";   // kept for compatibility (hidden base totals)
 const KEY_THEME   = "mara_book_theme_v7";
 const KEY_ATTACH  = "mara_book_attach_v7";
 const KEY_PAGE    = "mara_page_v7";
@@ -623,6 +546,11 @@ let currentPage = parseInt(localStorage.getItem(KEY_PAGE) || "1", 10);
 if (!currentPage || currentPage < 1) currentPage = 1;
 
 let flights = loadJSON(KEY_FLIGHTS, []);
+// hidden base totals (so your existing backups still work)
+let base = loadJSON(KEY_PREV, {
+  total: "0:00", night: "0:00", ifr: "0:00", pic: "0:00", cop: "0:00", dual: "0:00", fi: "0:00",
+  ldg_day: "0", ldg_night: "0", fstd: "0:00"
+});
 
 let attach = loadJSON(KEY_ATTACH, { photoDataUrl: "", pdfName: "" });
 
@@ -740,56 +668,6 @@ function normalizeHM(v){
 const TIME_KEYS = ["total","night","ifr","pic","cop","dual","fi","simTotal"];
 
 /* =========================
-   Base totals UI
-   ========================= */
-const baseFields = [
-  ["total","TOTAL FLIGHT"],
-  ["night","NIGHT"],
-  ["ifr","IFR"],
-  ["pic","PIC"],
-  ["cop","CO-PILOT"],
-  ["dual","DUAL"],
-  ["fi","FI"],
-  ["fstd","FSTD TOTAL"],
-  ["ldg_day","DAY LDG"],
-  ["ldg_night","NIGHT LDG"]
-];
-
-function renderBase(){
-  const grid = document.getElementById("prevGrid");
-  grid.innerHTML = "";
-
-  baseFields.forEach(([k,label])=>{
-    const d = document.createElement("div");
-    d.className="field";
-    const ph = k.includes("ldg") ? "0" : "H:MM";
-    d.innerHTML = '<label>'+label+'</label><input id="base_'+k+'" value="'+escapeHTML(base[k]??"")+'" placeholder="'+ph+'">';
-    grid.appendChild(d);
-
-    const el = d.querySelector("input");
-
-    el.addEventListener("input", ()=>{
-      if(!k.includes("ldg")) el.value = up(el.value);
-      base[k] = el.value;
-      saveJSON(KEY_PREV, base);
-      render();
-    });
-
-    el.addEventListener("blur", ()=>{
-      if(!k.includes("ldg")){
-        el.value = up(el.value);
-        const norm = normalizeHM(el.value);
-        if(norm) el.value = norm;
-        if(isTimeHM(el.value)) _lastTimeValue = el.value;
-      }
-      base[k] = el.value;
-      saveJSON(KEY_PREV, base);
-      render();
-    });
-  });
-}
-
-/* =========================
    Totals helpers
    ========================= */
 function totalsZero(){
@@ -843,15 +721,67 @@ function baseTotalsToMins(){
 }
 
 /* =========================
+   Date sorting (sequence by date)
+   - sorts only real flights; null rows stay at end
+   ========================= */
+function parseDateToKey(s){
+  const raw = String(s||"").trim();
+  if(!raw) return Infinity;
+  const parts = raw.split(".").filter(Boolean);
+  if(parts.length < 3) return Infinity;
+
+  let dd = parseInt(parts[0], 10);
+  let mm = parseInt(parts[1], 10);
+  let yy = parseInt(parts[2], 10);
+
+  if(!Number.isFinite(dd) || !Number.isFinite(mm) || !Number.isFinite(yy)) return Infinity;
+  if(dd < 1 || dd > 31 || mm < 1 || mm > 12) return Infinity;
+
+  if(parts[2].length === 2) yy = 2000 + yy;
+  else if(parts[2].length === 4) yy = yy;
+  else return Infinity;
+
+  return Date.UTC(yy, mm - 1, dd);
+}
+
+function sortFlightsByDate(){
+  const list = flights.filter(Boolean);
+
+  list.sort((a,b)=>{
+    const ka = parseDateToKey(a.date);
+    const kb = parseDateToKey(b.date);
+    if(ka !== kb) return ka - kb;
+
+    const ao = parseHHMM(a.out) ?? 999999;
+    const bo = parseHHMM(b.out) ?? 999999;
+    if(ao !== bo) return ao - bo;
+
+    return (a.id||0) - (b.id||0);
+  });
+
+  const needed = Math.max(list.length, flights.length);
+  const fullLen = Math.max(ROWS_PER_PAGE, Math.ceil(needed / ROWS_PER_PAGE) * ROWS_PER_PAGE);
+
+  flights = new Array(fullLen).fill(null);
+  for(let i=0;i<list.length;i++) flights[i] = list[i];
+
+  saveJSON(KEY_FLIGHTS, flights);
+
+  const maxPage = Math.max(1, Math.ceil(flights.length / ROWS_PER_PAGE));
+  if(currentPage > maxPage) currentPage = maxPage;
+  localStorage.setItem(KEY_PAGE, String(currentPage));
+}
+
+/* =========================
    Table cell helper (TAB copies previous time)
    ========================= */
 function cellInput(idx, key, val, ph, cls){
   const c = ("cell " + (cls||"")).trim();
   const v = (val===undefined || val===null) ? "" : String(val);
   return '<input class="'+c+'" value="'+escapeHTML(v)+'" placeholder="'+escapeHTML(ph||"")+'" '+
-    'oninput="onCell('+idx+', \''+key+'\', this.value)" '+
-    'onblur="onCellBlur('+idx+', \''+key+'\', this)" '+
-    'onkeydown="onCellKeyDown(event, '+idx+', \''+key+'\', this)">';
+    'oninput="onCell('+idx+', \'\''+key+'\'\', this.value)" '+
+    'onblur="onCellBlur('+idx+', \'\''+key+'\'\', this)" '+
+    'onkeydown="onCellKeyDown(event, '+idx+', \'\''+key+'\'\', this)">';
 }
 
 function ensureRowObject(i){
@@ -908,6 +838,11 @@ function onCellBlur(i, key, el){
   }
 
   onCell(i, key, el.value);
+
+  if(key === "date"){
+    sortFlightsByDate();
+    render();
+  }
 }
 
 function onCellKeyDown(e, i, key, el){
@@ -923,12 +858,13 @@ function clearRow(index){
   if(!confirm("CLEAR THIS ROW?")) return;
   flights[index] = null;
   saveJSON(KEY_FLIGHTS, flights);
+  sortFlightsByDate();
   render();
 }
 
 /* =========================
    Render (10 rows per page)
-   - TOTAL FROM PREVIOUS PAGE is carried totals up to end of previous page
+   - TOTAL FROM PREVIOUS PAGE = base + all rows before this page
    ========================= */
 function render(){
   const tbody = document.getElementById("tbody");
@@ -942,15 +878,12 @@ function render(){
     saveJSON(KEY_FLIGHTS, flights);
   }
 
-  // This page only
   const sum = sumFlightsRange(start, end);
 
-  // Carried totals = BASE + ALL rows before this page
   const baseM = baseTotalsToMins();
   const beforeThisPage = sumFlightsRange(0, start);
   const carried = addTotals(baseM, beforeThisPage);
 
-  // Total to date (end of current page)
   const grand = addTotals(carried, sum);
 
   for(let r=0; r<ROWS_PER_PAGE; r++){
@@ -1001,7 +934,6 @@ function render(){
   if(currentPage > maxPage) currentPage = maxPage;
   document.getElementById("pageLabel").textContent = "PAGE " + currentPage + " / " + maxPage;
 
-  // Footer rows: show carried totals as “TOTAL FROM PREVIOUS PAGE”
   document.getElementById("tfoot").innerHTML =
     '<tr class="total-this">'+
       '<td class="tfLabel" colspan="8">TOTAL FROM THIS PAGE</td>'+
@@ -1055,7 +987,7 @@ function render(){
 }
 
 /* =========================
-   Modal controls (fixed)
+   Modal controls
    ========================= */
 function overlayClick(e){
   if(e.target && e.target.id === "overlay") closeModal();
@@ -1088,7 +1020,7 @@ function openModal(){
 }
 
 /* =========================
-   Add flight (first empty row on current page, else next page)
+   Add flight
    ========================= */
 function saveFromModal(){
   const get = id => up(document.getElementById(id).value.trim());
@@ -1155,6 +1087,8 @@ function saveFromModal(){
 
   if(isTimeHM(row.total)) _lastTimeValue = row.total;
   if(isTimeHM(row.simTotal)) _lastTimeValue = row.simTotal;
+
+  sortFlightsByDate();
 
   saveJSON(KEY_FLIGHTS, flights);
   closeModal();
@@ -1232,6 +1166,7 @@ function importBackup(){
         currentPage = parseInt(obj.page || "1", 10) || 1;
         localStorage.setItem(KEY_PAGE, String(currentPage));
 
+        sortFlightsByDate();
         render();
       }catch(e){
         alert("BACKUP FILE NOT VALID.");
@@ -1253,8 +1188,8 @@ function escapeHTML(s){
    Init
    ========================= */
 applyTheme(localStorage.getItem(KEY_THEME) || "dark");
+sortFlightsByDate();
 render();
-  
 </script>
 </body>
 </html>
