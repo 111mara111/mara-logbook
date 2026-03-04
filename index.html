@@ -80,17 +80,22 @@
 
     /* ===== header ===== */
     .topbar{
-      position:sticky;top:10px;z-index:50;
-      display:flex;align-items:center;justify-content:space-between;gap:12px;
-      border:1px solid var(--line2);
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.01));
-      backdrop-filter:blur(12px);
-      border-radius:16px;
-      padding:14px 14px;
-      box-shadow:var(--shadow);
-    }
+  position:sticky;top:10px;z-index:50;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
 
-    .brand{display:flex;flex-direction:column;gap:4px;min-width:220px;max-width:520px}
+    .brand{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:220px;
+  max-width:520px;
+  flex:0 0 auto;   /* prevents stretching */
+}
     .brand .title{
       display:flex;align-items:center;gap:10px;
       font-weight:1000;
@@ -109,8 +114,12 @@
     }
 
     .kpis{
-      display:flex;align-items:center;justify-content:center;
-      gap:14px;flex:1;flex-wrap:wrap;min-width:320px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  flex:1;
+}
     }
     .kpi{
       min-width:150px;text-align:center;
@@ -365,6 +374,49 @@
       .panel{box-shadow:none;background:#fff}
       @page{size:A4 landscape;margin:10mm}
     }
+    /* ===== Layout lock (iPad/Mac) ===== */
+
+/* Keep app centered and prevent "panel pushed to the right" */
+.app{
+  width: min(1500px, calc(100vw - 28px));
+  margin: 0 auto;
+}
+
+/* Topbar must be allowed to wrap on smaller widths (iPad) */
+.topbar{
+  flex-wrap: wrap;
+}
+
+/* Left brand should not grow too wide (prevents huge empty left side) */
+.brand{
+  flex: 0 0 auto;
+  min-width: 260px;
+  max-width: 520px;
+}
+
+/* KPI row should flex but also be allowed to wrap nicely */
+.kpis{
+  flex: 1 1 420px;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Actions must stay together and align right */
+.actions{
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+/* Table panel should always take full width below the topbar */
+.panel{
+  width: 100%;
+}
+
+/* Prevent any accidental horizontal overflow causing weird alignment */
+html, body{
+  overflow-x: hidden;
+}
   </style>
 </head>
 
@@ -402,6 +454,7 @@
         <button class="btn" onclick="importBackup()">RESTORE</button>
         <button class="btn" onclick="window.print()">EXPORT PDF</button>
     </div>
+      </div>
 
     <!-- LOGBOOK TABLE -->
     <div class="panel">
