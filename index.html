@@ -28,9 +28,6 @@
       --gold:#d9bb62;
       --gold2:#caa84a;
 
-      --danger:#d06b5f;
-      --ok:#59c18d;
-
       --thead:rgba(8,20,45,.72);
       --row:rgba(255,255,255,.02);
       --rowAlt:rgba(255,255,255,.035);
@@ -38,6 +35,7 @@
 
       --shadow:0 24px 80px rgba(0,0,0,.35);
       --totals-accent:var(--gold);
+      --radius:16px;
     }
 
     body.light{
@@ -51,7 +49,6 @@
 
       --gold:#d9bb62;
       --gold2:#caa84a;
-      --totals-accent:var(--gold);
 
       --thead:rgba(234,241,255,.95);
       --row:rgba(255,255,255,.98);
@@ -63,7 +60,6 @@
 
     *{box-sizing:border-box}
     html,body{height:100%}
-    html,body{overflow-x:hidden;}
     body{
       margin:0;
       font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
@@ -73,23 +69,20 @@
         radial-gradient(900px 700px at 60% 80%, rgba(0,0,0,.35), transparent 60%),
         var(--bg);
       color:var(--ink);
-      -webkit-text-size-adjust: 100%;
+      overflow-x:hidden;
+      -webkit-text-size-adjust:100%;
     }
 
-    .app{
-      max-width:1500px;
-      margin:0 auto;
-      padding:18px 14px 30px;
-    }
+    .app{max-width:1500px;margin:0 auto;padding:18px 14px 30px}
 
-    /* ===== header ===== */
+    /* ===== TOPBAR (matches original dark pill look) ===== */
     .topbar{
       position:sticky;top:10px;z-index:50;
       display:flex;align-items:center;justify-content:space-between;gap:12px;
       border:1px solid var(--line2);
       background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.01));
       backdrop-filter:blur(12px);
-      border-radius:16px;
+      border-radius:var(--radius);
       padding:14px 14px;
       box-shadow:var(--shadow);
       flex-wrap:wrap;
@@ -122,6 +115,7 @@
       padding:10px 12px;border-radius:14px;
       background:rgba(255,255,255,.04);
       border:1px solid var(--line2);
+      box-shadow:0 10px 30px rgba(0,0,0,.18) inset;
     }
     .kpi .v{
       font-weight:1000;
@@ -139,17 +133,9 @@
       font-weight:1000;
     }
 
-    .actions{
-      display:flex;align-items:center;gap:10px;
-      flex-wrap:wrap;justify-content:flex-end;
-    }
-
-    /* IMPORTANT: prevent Safari default white buttons */
-    button{appearance:none;-webkit-appearance:none;background:none;border:none;color:inherit;font:inherit;}
-
+    .actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
     .btn{
-      border-radius:999px;
-      border:1px solid var(--line);
+      border-radius:999px;border:1px solid var(--line);
       background:rgba(255,255,255,.03);
       color:var(--ink);
       padding:10px 14px;
@@ -160,17 +146,21 @@
       transition:transform .12s, background .12s, border-color .12s, opacity .12s;
       white-space:nowrap;
       text-transform:uppercase;
-      -webkit-tap-highlight-color: transparent;
-      line-height:1;
+      -webkit-tap-highlight-color:transparent;
+      user-select:none;
     }
     .btn:hover{transform:translateY(-1px);border-color:rgba(217,187,98,.35)}
     .btn:active{transform:translateY(0);opacity:.9}
     .btn.gold{background:linear-gradient(180deg,var(--gold),var(--gold2));color:#1b1b1b;border-color:transparent}
     .btn.small{padding:9px 12px;min-width:44px}
 
+    .seg{
+      display:flex;align-items:center;gap:10px;
+    }
+
     /* ===== panels ===== */
     .panel{
-      margin-top:14px;border-radius:16px;overflow:hidden;
+      margin-top:14px;border-radius:var(--radius);overflow:hidden;
       border:1px solid var(--line2);
       background:var(--panel);
       box-shadow:var(--shadow);
@@ -187,7 +177,9 @@
       font-weight:1000;letter-spacing:3px;text-transform:uppercase;
       font-size:12px;color:var(--muted);white-space:nowrap;
     }
-    .panel-h .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+    .panel-h .right{
+      display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end
+    }
 
     /* ===== table ===== */
     .table-wrap{width:100%;overflow:auto;background:var(--panel2); -webkit-overflow-scrolling:touch;}
@@ -266,12 +258,12 @@
     .del{
       border-radius:10px;border:1px solid rgba(208,107,95,.35);
       background:rgba(208,107,95,.12);
-      color:var(--danger);
+      color:#d06b5f;
       cursor:pointer;font-weight:1000;
       padding:6px 10px;text-transform:uppercase;
     }
 
-    /* ===== modal ===== */
+    /* ===== modal (NO photo/pdf import) ===== */
     .overlay{
       position:fixed;inset:0;background:rgba(0,0,0,.45);
       display:none;align-items:center;justify-content:center;
@@ -303,34 +295,24 @@
       overflow:auto;-webkit-overflow-scrolling:touch;
       flex:1 1 auto;
     }
-    .scanRow{grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap}
-    .scanBtn{
-      flex:1;min-width:280px;
-      border-radius:16px;padding:14px 14px;
-      border:2px dashed rgba(118,169,255,.35);
-      background:rgba(118,169,255,.08);
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field label{
+      font-size:10px;letter-spacing:3px;text-transform:uppercase;
+      color:var(--muted);font-weight:1000;
+    }
+    .field input{
+      height:40px;border-radius:12px;border:1px solid var(--line2);
+      background:rgba(255,255,255,.02);
       color:var(--ink);
-      font-weight:1000;letter-spacing:2px;text-transform:uppercase;
-      cursor:pointer;
-      display:flex;align-items:center;justify-content:center;gap:10px;
+      padding:10px 12px;
+      font-weight:1000;
+      outline:none;
+      font-variant-numeric:tabular-nums;
+      text-transform:uppercase;
     }
-    .scanBtn.pdf{border-color:rgba(89,193,141,.35);background:rgba(89,193,141,.08)}
-    .fileHidden{display:none}
-    .hint{
-      grid-column:1/-1;border:1px dashed var(--line);
-      border-radius:14px;padding:10px 12px;
-      color:var(--muted);font-size:12px;line-height:1.35;
-      background:rgba(255,255,255,.03);
-      text-transform:none;
-    }
-    .hint b{text-transform:uppercase}
-    .preview{
-      grid-column:1/-1;border-radius:14px;overflow:hidden;
-      border:1px solid var(--line2);
-      background:rgba(0,0,0,.08);
-      display:none;max-height:240px;
-    }
-    .preview img{width:100%;display:block}
+    body.light .field input{background:rgba(255,255,255,.92)}
+    .field input:focus{border-color:rgba(217,187,98,.45)}
+
     .modal-actions{
       grid-column:1/-1;
       position:sticky;bottom:0;
@@ -378,9 +360,11 @@
       </div>
 
       <div class="actions">
-        <button class="btn small" type="button" onclick="setPage(currentPage-1)">◀</button>
-        <button class="btn" type="button" id="pageLabel" style="min-width:130px">PAGE 1 / 1</button>
-        <button class="btn small" type="button" onclick="setPage(currentPage+1)">▶</button>
+        <div class="seg">
+          <button class="btn small" type="button" onclick="setPage(currentPage-1)">◀</button>
+          <button class="btn" type="button" id="pageLabel" style="min-width:130px">PAGE 1 / 1</button>
+          <button class="btn small" type="button" onclick="setPage(currentPage+1)">▶</button>
+        </div>
 
         <button class="btn" type="button" id="themeBtn" onclick="toggleTheme()">LIGHT</button>
         <button class="btn gold" type="button" onclick="openModal()">+ ADD FLIGHT</button>
@@ -397,7 +381,7 @@
         <div class="left">📘 LOGBOOK PAGE (10 ROWS)</div>
         <div class="right">
           <span style="color:var(--muted);font-weight:1000;font-size:12px;letter-spacing:1px;text-transform:uppercase;">
-            AUTO-SAVED LOCALLY • WORKS OFFLINE
+            AUTO-SAVED LOCALLY • WORKS OFFLINE • SORTED BY DATE
           </span>
         </div>
       </div>
@@ -477,20 +461,6 @@
       </div>
 
       <div class="modal-b">
-        <div class="scanRow">
-          <button class="scanBtn" type="button" onclick="document.getElementById('photoInput').click()">📷 PHOTO SCAN</button>
-          <button class="scanBtn pdf" type="button" onclick="document.getElementById('pdfInput').click()">📄 PDF IMPORT</button>
-          <input class="fileHidden" type="file" id="photoInput" accept="image/*">
-          <input class="fileHidden" type="file" id="pdfInput" accept="application/pdf">
-        </div>
-
-        <div class="hint">
-          <b>NOTE:</b> PHOTO/PDF BUTTONS STORE A LOCAL PREVIEW REFERENCE (NO AI EXTRACTION).
-        </div>
-
-        <div class="preview" id="photoPrev"></div>
-        <div id="pdfName" style="grid-column:1/-1;color:var(--muted);font-weight:1000;letter-spacing:1px;"></div>
-
         <div class="field"><label>Date (DD.MM.YY)</label><input id="f_date" placeholder="23.11.25"></div>
         <div class="field"><label>Name(s) PIC</label><input id="f_name" placeholder="SELF"></div>
 
@@ -516,10 +486,10 @@
         <div class="field"><label>LDG Day</label><input id="f_ldg_day" type="number" min="0" placeholder="0"></div>
 
         <div class="field"><label>LDG Night</label><input id="f_ldg_night" type="number" min="0" placeholder="0"></div>
-        <div class="field"><label>FSTD Date (DD.MM.YY)</label><input id="f_sim_date" placeholder="29.11.25"></div>
+        <div class="field"><label>FSTD Date (DD.MM.YY)</label><input id="f_sim_date" placeholder=""></div>
 
-        <div class="field"><label>FSTD Type</label><input id="f_sim_type" placeholder="B789"></div>
-        <div class="field"><label>FSTD Total (H:MM)</label><input id="f_sim_total" placeholder="3:00"></div>
+        <div class="field"><label>FSTD Type</label><input id="f_sim_type" placeholder=""></div>
+        <div class="field"><label>FSTD Total (H:MM)</label><input id="f_sim_total" placeholder=""></div>
 
         <div class="field" style="grid-column:1/-1"><label>Remarks & Endorsements</label><input id="f_rem" placeholder=""></div>
 
@@ -535,24 +505,18 @@
 /* =========================
    Storage + State
    ========================= */
-const KEY_FLIGHTS = "mara_book_flights_v7";
-const KEY_PREV    = "mara_book_base_v7";   // kept for compatibility (hidden base totals)
-const KEY_THEME   = "mara_book_theme_v7";
-const KEY_ATTACH  = "mara_book_attach_v7";
-const KEY_PAGE    = "mara_page_v7";
+const KEY_FLIGHTS = "mara_book_flights_v8";
+const KEY_THEME   = "mara_book_theme_v8";
+const KEY_PAGE    = "mara_page_v8";
 const ROWS_PER_PAGE = 10;
+
+// Keep BASE (hidden) so calculations structure remains compatible (currently always 0:00)
+const base = { total:"0:00", night:"0:00", ifr:"0:00", pic:"0:00", cop:"0:00", dual:"0:00", fi:"0:00", ldg_day:"0", ldg_night:"0", fstd:"0:00" };
 
 let currentPage = parseInt(localStorage.getItem(KEY_PAGE) || "1", 10);
 if (!currentPage || currentPage < 1) currentPage = 1;
 
-let flights = loadJSON(KEY_FLIGHTS, []);
-// hidden base totals (so your existing backups still work)
-let base = loadJSON(KEY_PREV, {
-  total: "0:00", night: "0:00", ifr: "0:00", pic: "0:00", cop: "0:00", dual: "0:00", fi: "0:00",
-  ldg_day: "0", ldg_night: "0", fstd: "0:00"
-});
-
-let attach = loadJSON(KEY_ATTACH, { photoDataUrl: "", pdfName: "" });
+let flights = loadJSON(KEY_FLIGHTS, []); // array of objects (no nulls)
 
 function loadJSON(k, fallback){
   try{
@@ -563,15 +527,6 @@ function loadJSON(k, fallback){
 }
 function saveJSON(k, v){
   try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){}
-}
-
-/* =========================
-   Page
-   ========================= */
-function setPage(p){
-  currentPage = Math.max(1, p);
-  localStorage.setItem(KEY_PAGE, String(currentPage));
-  render();
 }
 
 /* =========================
@@ -593,13 +548,49 @@ function toggleTheme(){
 }
 
 /* =========================
-   Time helpers
+   Date + time helpers
    ========================= */
 let _lastTimeValue = "";
 
-function toMins(hhmm){
-  if(!hhmm) return 0;
-  const s = String(hhmm).trim();
+// Accept: DD.MM.YY or DD.MM.YYYY or DDMMYY
+function parseDMY(s){
+  const v = String(s||"").trim();
+  if(!v) return null;
+  const digits = v.replace(/[^0-9]/g,"");
+  if(digits.length === 6){
+    const dd = parseInt(digits.slice(0,2),10);
+    const mm = parseInt(digits.slice(2,4),10);
+    const yy = parseInt(digits.slice(4,6),10);
+    if(dd<1||dd>31||mm<1||mm>12) return null;
+    const yyyy = (yy>=70 ? (1900+yy) : (2000+yy));
+    return {dd,mm,yyyy};
+  }
+  if(digits.length === 8){
+    const dd = parseInt(digits.slice(0,2),10);
+    const mm = parseInt(digits.slice(2,4),10);
+    const yyyy = parseInt(digits.slice(4,8),10);
+    if(dd<1||dd>31||mm<1||mm>12||yyyy<1900||yyyy>2100) return null;
+    return {dd,mm,yyyy};
+  }
+  return null;
+}
+function dateKey(s){
+  const d = parseDMY(s);
+  if(!d) return 99999999; // unknown dates go to bottom
+  return d.yyyy*10000 + d.mm*100 + d.dd;
+}
+function fmtDMY(s){
+  const d = parseDMY(s);
+  if(!d) return (s||"").toUpperCase();
+  const yy = String(d.yyyy).slice(-2);
+  const dd = (d.dd<10?"0":"")+d.dd;
+  const mm = (d.mm<10?"0":"")+d.mm;
+  return dd+"."+mm+"."+yy;
+}
+
+function toMins(hm){
+  if(!hm) return 0;
+  const s = String(hm).trim();
   if(!s) return 0;
   if(s.includes(":")){
     const parts = s.split(":");
@@ -635,10 +626,8 @@ function calcBlock(outHHMM, inHHMM){
   return i-o;
 }
 function up(s){ return (s||"").toUpperCase(); }
+function isTimeHM(s){ return /^\\d+:\\d{2}$/.test(String(s||"").trim()); }
 
-function isTimeHM(s){
-  return /^\d+:\d{2}$/.test(String(s||"").trim());
-}
 function normalizeHM(v){
   const s = String(v||"").trim();
   if(!s) return "";
@@ -668,6 +657,28 @@ function normalizeHM(v){
 const TIME_KEYS = ["total","night","ifr","pic","cop","dual","fi","simTotal"];
 
 /* =========================
+   Sorting (oldest -> newest)
+   ========================= */
+function sortFlightsInPlace(){
+  flights.sort((a,b)=>{
+    const ka = dateKey(a.date);
+    const kb = dateKey(b.date);
+    if(ka !== kb) return ka - kb;
+    return (a._created||0) - (b._created||0);
+  });
+}
+
+/* =========================
+   Pagination
+   ========================= */
+function setPage(p){
+  const maxPage = Math.max(1, Math.ceil(Math.max(flights.length,1) / ROWS_PER_PAGE));
+  currentPage = Math.min(Math.max(1, p), maxPage);
+  localStorage.setItem(KEY_PAGE, String(currentPage));
+  render();
+}
+
+/* =========================
    Totals helpers
    ========================= */
 function totalsZero(){
@@ -687,10 +698,10 @@ function addTotals(a,b){
     ldgNight:a.ldgNight+b.ldgNight
   };
 }
-function sumFlightsRange(start, end){
+function sumFlightsRange(start, end, sorted){
   const s = totalsZero();
   for(let i=start;i<end;i++){
-    const f = flights[i];
+    const f = sorted[i];
     if(!f) continue;
     s.total += toMins(f.total);
     s.night += toMins(f.night);
@@ -721,73 +732,24 @@ function baseTotalsToMins(){
 }
 
 /* =========================
-   Date sorting (sequence by date)
-   - sorts only real flights; null rows stay at end
-   ========================= */
-function parseDateToKey(s){
-  const raw = String(s||"").trim();
-  if(!raw) return Infinity;
-  const parts = raw.split(".").filter(Boolean);
-  if(parts.length < 3) return Infinity;
-
-  let dd = parseInt(parts[0], 10);
-  let mm = parseInt(parts[1], 10);
-  let yy = parseInt(parts[2], 10);
-
-  if(!Number.isFinite(dd) || !Number.isFinite(mm) || !Number.isFinite(yy)) return Infinity;
-  if(dd < 1 || dd > 31 || mm < 1 || mm > 12) return Infinity;
-
-  if(parts[2].length === 2) yy = 2000 + yy;
-  else if(parts[2].length === 4) yy = yy;
-  else return Infinity;
-
-  return Date.UTC(yy, mm - 1, dd);
-}
-
-function sortFlightsByDate(){
-  const list = flights.filter(Boolean);
-
-  list.sort((a,b)=>{
-    const ka = parseDateToKey(a.date);
-    const kb = parseDateToKey(b.date);
-    if(ka !== kb) return ka - kb;
-
-    const ao = parseHHMM(a.out) ?? 999999;
-    const bo = parseHHMM(b.out) ?? 999999;
-    if(ao !== bo) return ao - bo;
-
-    return (a.id||0) - (b.id||0);
-  });
-
-  const needed = Math.max(list.length, flights.length);
-  const fullLen = Math.max(ROWS_PER_PAGE, Math.ceil(needed / ROWS_PER_PAGE) * ROWS_PER_PAGE);
-
-  flights = new Array(fullLen).fill(null);
-  for(let i=0;i<list.length;i++) flights[i] = list[i];
-
-  saveJSON(KEY_FLIGHTS, flights);
-
-  const maxPage = Math.max(1, Math.ceil(flights.length / ROWS_PER_PAGE));
-  if(currentPage > maxPage) currentPage = maxPage;
-  localStorage.setItem(KEY_PAGE, String(currentPage));
-}
-
-/* =========================
    Table cell helper (TAB copies previous time)
    ========================= */
-function cellInput(idx, key, val, ph, cls){
+function cellInput(id, key, val, ph, cls){
   const c = ("cell " + (cls||"")).trim();
   const v = (val===undefined || val===null) ? "" : String(val);
   return '<input class="'+c+'" value="'+escapeHTML(v)+'" placeholder="'+escapeHTML(ph||"")+'" '+
-    'oninput="onCell('+idx+', \'\''+key+'\'\', this.value)" '+
-    'onblur="onCellBlur('+idx+', \'\''+key+'\'\', this)" '+
-    'onkeydown="onCellKeyDown(event, '+idx+', \'\''+key+'\'\', this)">';
+    'oninput="onCell(\\''+id+'\\', \\' '+key+'\\'.trim(), this.value)" '+
+    'onblur="onCellBlur(\\''+id+'\\', \\' '+key+'\\'.trim(), this)" '+
+    'onkeydown="onCellKeyDown(event, \\' '+key+'\\'.trim(), this)">';
 }
 
-function ensureRowObject(i){
-  if (flights[i]) return;
-  flights[i] = {
-    id: Date.now() + Math.floor(Math.random()*100000),
+/* =========================
+   CRUD
+   ========================= */
+function newFlight(){
+  return {
+    id: String(Date.now()) + "_" + String(Math.floor(Math.random()*100000)),
+    _created: Date.now(),
     date:"", depPlace:"", out:"", arrPlace:"", in:"",
     acType:"", acReg:"", name:"SELF",
     total:"",
@@ -797,12 +759,27 @@ function ensureRowObject(i){
     remarks:""
   };
 }
+function findFlightById(id){
+  return flights.find(f=>f && f.id===id);
+}
+function ensureFlightById(id){
+  let f = findFlightById(id);
+  if(f) return f;
+  // if it's the "empty row" placeholder, create it
+  f = newFlight();
+  f.id = id;
+  flights.push(f);
+  return f;
+}
 
-function onCell(i, key, value){
-  ensureRowObject(i);
-  const f = flights[i];
+function onCell(id, key, value){
+  const f = ensureFlightById(id);
 
-  f[key] = up(value);
+  if(key==="date"){
+    f.date = fmtDMY(value);
+  }else{
+    f[key] = up(value);
+  }
 
   if(key==="out" || key==="in"){
     const digits = String(f[key]||"").replace(/[^0-9]/g,"");
@@ -819,12 +796,16 @@ function onCell(i, key, value){
     }
   }
 
-  saveJSON(KEY_FLIGHTS, flights);
-  render();
+  saveAndRender();
 }
 
-function onCellBlur(i, key, el){
+function onCellBlur(id, key, el){
   el.value = up(el.value);
+
+  if(key==="date"){
+    const formatted = fmtDMY(el.value);
+    el.value = formatted;
+  }
 
   if(TIME_KEYS.includes(key)){
     const norm = normalizeHM(el.value);
@@ -837,102 +818,128 @@ function onCellBlur(i, key, el){
     el.value = digits;
   }
 
-  onCell(i, key, el.value);
-
-  if(key === "date"){
-    sortFlightsByDate();
-    render();
-  }
+  onCell(id, key, el.value);
 }
 
-function onCellKeyDown(e, i, key, el){
+function onCellKeyDown(e, key, el){
   if(e.key !== "Tab") return;
   const empty = !String(el.value||"").trim();
   if(empty && TIME_KEYS.includes(key) && isTimeHM(_lastTimeValue)){
     el.value = _lastTimeValue;
-    onCell(i, key, el.value);
   }
 }
 
-function clearRow(index){
-  if(!confirm("CLEAR THIS ROW?")) return;
-  flights[index] = null;
+function deleteFlight(id){
+  if(!confirm("DELETE THIS ROW?")) return;
+  flights = flights.filter(f=>f && f.id!==id);
+  saveAndRender(true);
+}
+
+function saveAndRender(keepPage){
+  // normalize a little + remove completely empty rows
+  flights = flights.filter(f=>{
+    if(!f) return false;
+    const hasAny = Object.keys(f).some(k=>{
+      if(k==="id"||k==="_created") return false;
+      const v = String(f[k]??"").trim();
+      return v && v!=="0" && v!=="0:00";
+    });
+    return hasAny;
+  });
+
+  sortFlightsInPlace();
   saveJSON(KEY_FLIGHTS, flights);
-  sortFlightsByDate();
+
+  if(!keepPage){
+    // Ensure currentPage still valid
+    const maxPage = Math.max(1, Math.ceil(Math.max(flights.length,1) / ROWS_PER_PAGE));
+    if(currentPage > maxPage) currentPage = maxPage;
+    localStorage.setItem(KEY_PAGE, String(currentPage));
+  }
+
   render();
 }
 
 /* =========================
-   Render (10 rows per page)
-   - TOTAL FROM PREVIOUS PAGE = base + all rows before this page
+   Render
    ========================= */
 function render(){
+  sortFlightsInPlace();
+  const sorted = flights.slice(); // already sorted
+
   const tbody = document.getElementById("tbody");
   tbody.innerHTML = "";
+
+  const maxPage = Math.max(1, Math.ceil(Math.max(sorted.length,1) / ROWS_PER_PAGE));
+  if(currentPage > maxPage) currentPage = maxPage;
+  document.getElementById("pageLabel").textContent = "PAGE " + currentPage + " / " + maxPage;
+  localStorage.setItem(KEY_PAGE, String(currentPage));
 
   const start = (currentPage - 1) * ROWS_PER_PAGE;
   const end = start + ROWS_PER_PAGE;
 
-  if (flights.length < end) {
-    for (let i = flights.length; i < end; i++) flights.push(null);
-    saveJSON(KEY_FLIGHTS, flights);
+  const pageItems = sorted.slice(start, end);
+
+  // Fill to 10 rows with placeholders (not stored until edited)
+  while(pageItems.length < ROWS_PER_PAGE){
+    const tmp = newFlight();
+    tmp.id = "tmp_" + String(Date.now()) + "_" + String(Math.floor(Math.random()*100000)) + "_" + String(pageItems.length);
+    tmp._tmp = true;
+    pageItems.push(tmp);
   }
 
-  const sum = sumFlightsRange(start, end);
-
+  // sums
+  const sum = sumFlightsRange(start, Math.min(end, sorted.length), sorted);
   const baseM = baseTotalsToMins();
-  const beforeThisPage = sumFlightsRange(0, start);
+  const beforeThisPage = sumFlightsRange(0, Math.min(start, sorted.length), sorted);
   const carried = addTotals(baseM, beforeThisPage);
-
   const grand = addTotals(carried, sum);
 
+  // rows
   for(let r=0; r<ROWS_PER_PAGE; r++){
-    const idx = start + r;
-    const f = flights[idx];
+    const f = pageItems[r];
+    const id = f.id;
 
     const v = (key) => (f && f[key]) ? f[key] : "";
     const tr = document.createElement("tr");
 
     tr.innerHTML =
-      '<td>'+cellInput(idx,"date", v("date"), "DD.MM.YY", "")+'</td>'+
-      '<td>'+cellInput(idx,"depPlace", v("depPlace"), "ICAO", "upper")+'</td>'+
-      '<td>'+cellInput(idx,"out", v("out"), "HHMM", "time")+'</td>'+
-      '<td>'+cellInput(idx,"arrPlace", v("arrPlace"), "ICAO", "upper")+'</td>'+
-      '<td>'+cellInput(idx,"in", v("in"), "HHMM", "time")+'</td>'+
-      '<td>'+cellInput(idx,"acType", v("acType"), "B781", "upper")+'</td>'+
-      '<td>'+cellInput(idx,"acReg", v("acReg"), "B-17806", "upper")+'</td>'+
-      '<td>'+cellInput(idx,"name", v("name"), "SELF", "upper")+'</td>'+
+      '<td>'+cellInput(id,"date", v("date"), "DD.MM.YY", "")+'</td>'+
+      '<td>'+cellInput(id,"depPlace", v("depPlace"), "ICAO", "upper")+'</td>'+
+      '<td>'+cellInput(id,"out", v("out"), "HHMM", "time")+'</td>'+
+      '<td>'+cellInput(id,"arrPlace", v("arrPlace"), "ICAO", "upper")+'</td>'+
+      '<td>'+cellInput(id,"in", v("in"), "HHMM", "time")+'</td>'+
+      '<td>'+cellInput(id,"acType", v("acType"), "B781", "upper")+'</td>'+
+      '<td>'+cellInput(id,"acReg", v("acReg"), "B-17806", "upper")+'</td>'+
+      '<td>'+cellInput(id,"name", v("name")||"SELF", "SELF", "upper")+'</td>'+
 
-      '<td>'+cellInput(idx,"total", v("total"), "H:MM", "")+'</td>'+
-      '<td>'+cellInput(idx,"ldgDay", v("ldgDay"), "0", "small")+'</td>'+
-      '<td>'+cellInput(idx,"ldgNight", v("ldgNight"), "0", "small")+'</td>'+
+      '<td>'+cellInput(id,"total", v("total"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(id,"ldgDay", v("ldgDay")||"0", "0", "small")+'</td>'+
+      '<td>'+cellInput(id,"ldgNight", v("ldgNight")||"0", "0", "small")+'</td>'+
 
-      '<td>'+cellInput(idx,"night", v("night"), "H:MM", "")+'</td>'+
-      '<td>'+cellInput(idx,"ifr", v("ifr"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(id,"night", v("night"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(id,"ifr", v("ifr"), "H:MM", "")+'</td>'+
 
-      '<td>'+cellInput(idx,"pic", v("pic"), "H:MM", "")+'</td>'+
-      '<td>'+cellInput(idx,"cop", v("cop"), "H:MM", "")+'</td>'+
-      '<td>'+cellInput(idx,"dual", v("dual"), "H:MM", "")+'</td>'+
-      '<td>'+cellInput(idx,"fi", v("fi"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(id,"pic", v("pic"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(id,"cop", v("cop"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(id,"dual", v("dual"), "H:MM", "")+'</td>'+
+      '<td>'+cellInput(id,"fi", v("fi"), "H:MM", "")+'</td>'+
 
-      '<td>'+cellInput(idx,"simDate", v("simDate"), "DD.MM.YY", "small")+'</td>'+
-      '<td>'+cellInput(idx,"simType", v("simType"), "TYPE", "small upper")+'</td>'+
-      '<td>'+cellInput(idx,"simTotal", v("simTotal"), "H:MM", "small")+'</td>'+
+      '<td>'+cellInput(id,"simDate", v("simDate"), "DD.MM.YY", "small")+'</td>'+
+      '<td>'+cellInput(id,"simType", v("simType"), "TYPE", "small upper")+'</td>'+
+      '<td>'+cellInput(id,"simTotal", v("simTotal"), "H:MM", "small")+'</td>'+
 
-      '<td>'+cellInput(idx,"remarks", v("remarks"), "", "")+'</td>'+
-      '<td>'+(f ? '<button class="del" type="button" onclick="clearRow('+idx+')">×</button>' : '')+'</td>';
+      '<td>'+cellInput(id,"remarks", v("remarks"), "", "")+'</td>'+
+      '<td>'+(f._tmp ? '' : '<button class="del" type="button" onclick="deleteFlight(\\''+id+'\\')">×</button>')+'</td>';
 
     tbody.appendChild(tr);
   }
 
+  // KPIs (total-to-date)
   document.getElementById("k_total").textContent = fmtMins(grand.total);
   document.getElementById("k_pic").textContent   = fmtMins(grand.pic);
   document.getElementById("k_night").textContent = fmtMins(grand.night);
   document.getElementById("k_ifr").textContent   = fmtMins(grand.ifr);
-
-  const maxPage = Math.max(1, Math.ceil(flights.length / ROWS_PER_PAGE));
-  if(currentPage > maxPage) currentPage = maxPage;
-  document.getElementById("pageLabel").textContent = "PAGE " + currentPage + " / " + maxPage;
 
   document.getElementById("tfoot").innerHTML =
     '<tr class="total-this">'+
@@ -982,8 +989,6 @@ function render(){
       '<td>'+(grand.fstd?fmtMins(grand.fstd):"—")+'</td>'+
       '<td></td><td></td>'+
     '</tr>';
-
-  saveJSON(KEY_FLIGHTS, flights);
 }
 
 /* =========================
@@ -1012,7 +1017,6 @@ function clearModalFields(){
 function openModal(){
   clearModalFields();
   document.getElementById("overlay").classList.add("open");
-  renderAttachPreview();
   setTimeout(() => {
     const dateField = document.getElementById("f_date");
     if(dateField){ dateField.focus(); dateField.select(); }
@@ -1020,7 +1024,7 @@ function openModal(){
 }
 
 /* =========================
-   Add flight
+   Add flight (always inserts then sorts by date)
    ========================= */
 function saveFromModal(){
   const get = id => up(document.getElementById(id).value.trim());
@@ -1034,99 +1038,38 @@ function saveFromModal(){
   const ifr   = normalizeHM(get("f_ifr")) || total;
   const pic   = normalizeHM(get("f_pic")) || total;
 
-  const row = {
-    id: Date.now() + Math.floor(Math.random()*100000),
-    date: get("f_date"),
-    depPlace: get("f_dep"),
-    out: out,
-    arrPlace: get("f_arr"),
-    in: inn,
-    acType: get("f_type"),
-    acReg: get("f_reg"),
-    name: get("f_name") || "SELF",
+  const row = newFlight();
+  row.date = fmtDMY(get("f_date"));
+  row.depPlace = get("f_dep");
+  row.out = out;
+  row.arrPlace = get("f_arr");
+  row.in = inn;
+  row.acType = get("f_type");
+  row.acReg = get("f_reg");
+  row.name = get("f_name") || "SELF";
 
-    total: total,
-    ldgDay: String(document.getElementById("f_ldg_day").value || "0").trim(),
-    ldgNight: String(document.getElementById("f_ldg_night").value || "0").trim(),
+  row.total = total;
+  row.ldgDay = String(document.getElementById("f_ldg_day").value || "0").trim();
+  row.ldgNight = String(document.getElementById("f_ldg_night").value || "0").trim();
 
-    night: normalizeHM(get("f_night")),
-    ifr: ifr,
-    pic: pic,
-    cop: normalizeHM(get("f_cop")),
-    dual: normalizeHM(get("f_dual")),
-    fi: normalizeHM(get("f_fi")),
+  row.night = normalizeHM(get("f_night"));
+  row.ifr = ifr;
+  row.pic = pic;
+  row.cop = normalizeHM(get("f_cop"));
+  row.dual = normalizeHM(get("f_dual"));
+  row.fi = normalizeHM(get("f_fi"));
 
-    simDate: get("f_sim_date"),
-    simType: get("f_sim_type"),
-    simTotal: normalizeHM(get("f_sim_total")),
-
-    remarks: get("f_rem")
-  };
-
-  const start = (currentPage - 1) * ROWS_PER_PAGE;
-  const end = start + ROWS_PER_PAGE;
-
-  if (flights.length < end) for (let i = flights.length; i < end; i++) flights.push(null);
-
-  let placed = false;
-  for(let i=start; i<end; i++){
-    if(!flights[i]){
-      flights[i] = row;
-      placed = true;
-      break;
-    }
-  }
-
-  if(!placed){
-    setPage(currentPage + 1);
-    const newStart = (currentPage - 1) * ROWS_PER_PAGE;
-    const newEnd = newStart + ROWS_PER_PAGE;
-    if (flights.length < newEnd) for (let i = flights.length; i < newEnd; i++) flights.push(null);
-    flights[newStart] = row;
-  }
+  row.simDate = fmtDMY(get("f_sim_date"));
+  row.simType = get("f_sim_type");
+  row.simTotal = normalizeHM(get("f_sim_total"));
+  row.remarks = get("f_rem");
 
   if(isTimeHM(row.total)) _lastTimeValue = row.total;
   if(isTimeHM(row.simTotal)) _lastTimeValue = row.simTotal;
 
-  sortFlightsByDate();
-
-  saveJSON(KEY_FLIGHTS, flights);
+  flights.push(row);
+  saveAndRender(); // sorts oldest->newest
   closeModal();
-  render();
-}
-
-/* =========================
-   Attachments preview
-   ========================= */
-document.getElementById("photoInput").addEventListener("change", (e)=>{
-  const file = e.target.files && e.target.files[0];
-  if(!file) return;
-  const r = new FileReader();
-  r.onload = ()=>{
-    attach.photoDataUrl = String(r.result || "");
-    saveJSON(KEY_ATTACH, attach);
-    renderAttachPreview();
-  };
-  r.readAsDataURL(file);
-});
-document.getElementById("pdfInput").addEventListener("change", (e)=>{
-  const file = e.target.files && e.target.files[0];
-  if(!file) return;
-  attach.pdfName = up(file.name || "LOGBOOK.PDF");
-  saveJSON(KEY_ATTACH, attach);
-  renderAttachPreview();
-});
-function renderAttachPreview(){
-  const p = document.getElementById("photoPrev");
-  if(attach.photoDataUrl){
-    p.style.display = "block";
-    p.innerHTML = '<img src="'+attach.photoDataUrl+'" alt="PHOTO PREVIEW">';
-  }else{
-    p.style.display = "none";
-    p.innerHTML = "";
-  }
-  document.getElementById("pdfName").textContent =
-    attach.pdfName ? ("SELECTED PDF: " + attach.pdfName) : "";
 }
 
 /* =========================
@@ -1135,9 +1078,10 @@ function renderAttachPreview(){
 function exportBackup(){
   const payload = {
     flights,
-    base,
+    base, // kept for compatibility (currently hidden/zeros)
     theme: document.body.classList.contains("light") ? "light" : "dark",
-    page: currentPage
+    page: currentPage,
+    version: 8
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
   const a = document.createElement("a");
@@ -1157,17 +1101,11 @@ function importBackup(){
       try{
         const obj = JSON.parse(String(r.result||"{}"));
         if(Array.isArray(obj.flights)) flights = obj.flights;
-        if(obj.base) base = obj.base;
-
-        saveJSON(KEY_FLIGHTS, flights);
-        saveJSON(KEY_PREV, base);
-
+        // base is kept but UI is removed; we ignore imported base on purpose for now
         applyTheme(obj.theme === "light" ? "light" : "dark");
         currentPage = parseInt(obj.page || "1", 10) || 1;
         localStorage.setItem(KEY_PAGE, String(currentPage));
-
-        sortFlightsByDate();
-        render();
+        saveAndRender(true);
       }catch(e){
         alert("BACKUP FILE NOT VALID.");
       }
@@ -1188,7 +1126,7 @@ function escapeHTML(s){
    Init
    ========================= */
 applyTheme(localStorage.getItem(KEY_THEME) || "dark");
-sortFlightsByDate();
+sortFlightsInPlace();
 render();
 </script>
 </body>
