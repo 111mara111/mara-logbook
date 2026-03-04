@@ -394,23 +394,13 @@
         <button class="btn small" type="button" onclick="setPage(currentPage-1)">◀</button>
         <button class="btn" type="button" id="pageLabel" style="min-width:130px">PAGE 1 / 1</button>
         <button class="btn small" type="button" onclick="setPage(currentPage+1)">▶</button>
-
+        
         <button class="btn" type="button" id="themeBtn" onclick="toggleTheme()">LIGHT</button>
-        <button class="btn gold" type="button" onclick="openModal()">+ ADD FLIGHT</button>
-      </div>
-    </div>
-
-    <!-- BASE TOTALS (before page 1) -->
-    <div class="panel">
-      <div class="panel-h">
-        <div class="left">📋 BASE TOTALS (BEFORE PAGE 1)</div>
-        <div class="right">
-          <button class="btn" type="button" onclick="exportBackup()">BACKUP</button>
-          <button class="btn" type="button" onclick="importBackup()">RESTORE</button>
-          <button class="btn" type="button" onclick="window.print()">EXPORT PDF</button>
-        </div>
-      </div>
-      <div class="prev-grid" id="prevGrid"></div>
+        <button class="btn gold" type="button" onclick="openModal()">+ ADD FLIGHT</button> 
+        
+        <button class="btn" onclick="exportBackup()">BACKUP</button>
+        <button class="btn" onclick="importBackup()">RESTORE</button>
+        <button class="btn" onclick="window.print()">EXPORT PDF</button>
     </div>
 
     <!-- LOGBOOK TABLE -->
@@ -1210,8 +1200,8 @@ function escapeHTML(s){
    Init
    ========================= */
 applyTheme(localStorage.getItem(KEY_THEME) || "dark");
-renderBase();
 render();
+  
 </script>
 </body>
 </html>
