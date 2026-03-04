@@ -503,12 +503,25 @@ const KEY_FLIGHTS = "mara_book_flights_v10";
 const KEY_THEME   = "mara_book_theme_v10";
 const KEY_PAGE    = "mara_page_v10";
 const ROWS_PER_PAGE = 10;
+const KEY_BASE    = "mara_base_totals_v10";  
 
 let currentPage = parseInt(localStorage.getItem(KEY_PAGE) || "1", 10);
 if (!currentPage || currentPage < 1) currentPage = 1;
 
 let flights = loadJSON(KEY_FLIGHTS, []);
-
+// BASE totals = “TOTAL FROM PREVIOUS PAGE” for PAGE 1 (entered once)
+let base = loadJSON(KEY_BASE, {
+  total:  "9579:46",
+  night:  "3627:07",
+  ifr:    "8812:16",
+  pic:    "4237:16",
+  cop:    "5227:56",
+  dual:   "117:30",
+  fi:     "0:00",
+  fstd:   "659:05",
+  ldgDay: "2898",
+  ldgNight:"650"
+});
 /* =========================
    HELPERS
    ========================= */
@@ -797,7 +810,20 @@ function sumFlightsRange(start, end){
   }
   return s;
 }
-
+function baseTotalsToMins(){
+  return {
+    total: toMins(base.total),
+    night: toMins(base.night),
+    ifr:   toMins(base.ifr),
+    pic:   toMins(base.pic),
+    cop:   toMins(base.cop),
+    dual:  toMins(base.dual),
+    fi:    toMins(base.fi),
+    fstd:  toMins(base.fstd),
+    ldgDay: parseInt(base.ldgDay,10)||0,
+    ldgNight: parseInt(base.ldgNight,10)||0
+  };
+}
 /* =========================
    RENDER
    ========================= */
@@ -827,7 +853,7 @@ function render(){
   const end = start + ROWS_PER_PAGE;
 
   const sum = sumFlightsRange(start, end);
-  const carried = sumFlightsRange(0, start);
+  const carried = addTotals(baseTotalsToMins(), sumFlightsRange(0, start));
   const grand = addTotals(carried, sum);
 
   for(let r=0; r<ROWS_PER_PAGE; r++){
