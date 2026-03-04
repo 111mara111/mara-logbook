@@ -558,18 +558,7 @@ let currentPage = parseInt(localStorage.getItem(KEY_PAGE) || "1", 10);
 if (!currentPage || currentPage < 1) currentPage = 1;
 
 let flights = loadJSON(KEY_FLIGHTS, []);
-let base = loadJSON(KEY_PREV, {
-  total: "0:00",
-  night: "0:00",
-  ifr: "0:00",
-  pic: "0:00",
-  cop: "0:00",
-  dual: "0:00",
-  fi: "0:00",
-  ldg_day: "0",
-  ldg_night: "0",
-  fstd: "0:00"
-});
+
 let attach = loadJSON(KEY_ATTACH, { photoDataUrl: "", pdfName: "" });
 
 function loadJSON(k, fallback){
@@ -1178,7 +1167,6 @@ function importBackup(){
         currentPage = parseInt(obj.page || "1", 10) || 1;
         localStorage.setItem(KEY_PAGE, String(currentPage));
 
-        renderBase();
         render();
       }catch(e){
         alert("BACKUP FILE NOT VALID.");
