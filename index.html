@@ -367,6 +367,7 @@
 
         <button class="btn" type="button" onclick="exportBackup()">BACKUP</button>
         <button class="btn" type="button" onclick="importBackup()">RESTORE</button>
+        <button class="btn ok" type="button" id="saveBtn" onclick="manualSave()" style="display:none">SAVE</button>
         <button class="btn" type="button" onclick="window.print()">EXPORT PDF</button>
       </div>
     </div>
@@ -535,6 +536,26 @@ function loadJSON(k, fallback){
 function saveJSON(k, v){
   try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){}
 }
+  let dirty = false;
+
+function markDirty(){
+  if(dirty) return;
+  dirty = true;
+  const b = document.getElementById("saveBtn");
+  if(b) b.style.display = "inline-flex";
+}
+
+function clearDirty(){
+  dirty = false;
+  const b = document.getElementById("saveBtn");
+  if(b) b.style.display = "none";
+}
+
+function manualSave(){
+  markDirty();
+  clearDirty();
+  render();
+}
 function up(s){ return (s||"").toUpperCase(); }
 function normalizeAircraftType(raw){
   let s = up(raw).replace(/\s+/g,"").replace(/[^A-Z0-9]/g,"");
@@ -653,7 +674,7 @@ function compactFlights(){
   });
   flights = real;
   padToPages();
-  saveJSON(KEY_FLIGHTS, flights);
+  markDirty();
 }
 
 function padToPages(){
@@ -748,7 +769,7 @@ function onCell(i, key, value){
     }
   }
 
-  saveJSON(KEY_FLIGHTS, flights);
+  markDirty();
   render();
 }
 
@@ -774,7 +795,7 @@ function onCellBlur(i, key, el){
   if(key==="date"){
     compactFlights();
   }else{
-    saveJSON(KEY_FLIGHTS, flights);
+    markDirty();
   }
   render();
 }
@@ -791,7 +812,7 @@ function onCellKeyDown(e, i, key, el){
 function clearRow(index){
   if(!confirm("CLEAR THIS ROW?")) return;
   flights[index] = null;
-  saveJSON(KEY_FLIGHTS, flights);
+  markDirty();
   render();
 }
 
@@ -975,7 +996,7 @@ function render(){
       '<td></td><td></td>'+
     '</tr>';
 
-  saveJSON(KEY_FLIGHTS, flights);
+  markDirty();
 }
 
 /* =========================
@@ -1016,7 +1037,6 @@ function openModal(){
 
 function saveFromModal(){
   const get = id => up(document.getElementById(id).value.trim());
-
   const date = get("f_date");
   const dep = get("f_dep");
   const arr = get("f_arr");
@@ -1030,7 +1050,6 @@ function saveFromModal(){
   const inn = String(get("f_in")).replace(/[^0-9]/g,"");
   const block = calcBlock(out, inn);
   const blockStr = block!==null ? fmtMins(block) : "";
-
   const total = normalizeHM(get("f_total")) || blockStr;
   const ifr   = normalizeHM(get("f_ifr")) || total;
   const pic   = normalizeHM(get("f_pic")) || total;
@@ -1087,11 +1106,9 @@ function saveFromModal(){
   if(isTimeHM(row.total)) _lastTimeValue = row.total;
   if(isTimeHM(row.simTotal)) _lastTimeValue = row.simTotal;
 
-  saveJSON(KEY_FLIGHTS, flights);
-
+markDirty();
   // Keep sequence by date
   compactFlights();
-
   closeModal();
   render();
   setTimeout(focusFirstEmptyRow, 120);
@@ -1158,7 +1175,12 @@ function importBackup(){
       regEl.value = normalizeRegistration(regEl.value);
     });
   }
-})();
+  
+  window.addEventListener("beforeunload", (e)=>{
+  if(!dirty) return;
+  e.preventDefault();
+  e.returnValue = "";
+});
 /* =========================
    INIT
    ========================= */
