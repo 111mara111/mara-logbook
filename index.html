@@ -552,7 +552,8 @@ function clearDirty(){
 }
 
 function manualSave(){
-  markDirty();
+  saveJSON(KEY_FLIGHTS, flights);
+  saveJSON(KEY_BASE, base);   // keep base saved too (optional but recommended)
   clearDirty();
   render();
 }
@@ -996,7 +997,6 @@ function render(){
       '<td></td><td></td>'+
     '</tr>';
 
-  markDirty();
 }
 
 /* =========================
@@ -1156,9 +1156,8 @@ function importBackup(){
 
   if(typeEl){
     typeEl.addEventListener("input", () => {
-      const before = typeEl.value;
-      const after = normalizeAircraftType(before);
-      if(after !== before) typeEl.value = after;
+      const after = normalizeAircraftType(typeEl.value);
+      if(after !== typeEl.value) typeEl.value = after;
     });
     typeEl.addEventListener("blur", () => {
       typeEl.value = normalizeAircraftType(typeEl.value);
@@ -1167,16 +1166,16 @@ function importBackup(){
 
   if(regEl){
     regEl.addEventListener("input", () => {
-      const before = regEl.value;
-      const after = normalizeRegistration(before);
-      if(after !== before) regEl.value = after;
+      const after = normalizeRegistration(regEl.value);
+      if(after !== regEl.value) regEl.value = after;
     });
     regEl.addEventListener("blur", () => {
       regEl.value = normalizeRegistration(regEl.value);
     });
   }
-  
-  window.addEventListener("beforeunload", (e)=>{
+})(); // <-- IMPORTANT (you were missing this)
+
+window.addEventListener("beforeunload", (e)=>{
   if(!dirty) return;
   e.preventDefault();
   e.returnValue = "";
