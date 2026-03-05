@@ -464,8 +464,8 @@
         <div class="field"><label>ARR PLACE (ICAO)</label><input id="f_arr" placeholder="RJFF"></div>
         <div class="field"><label>ARR TIME (HHMM)</label><input id="f_in" placeholder="0234"></div>
 
-        <div class="field"><label>AIRCRAFT TYPE</label><input id="f_type" placeholder="B789"></div>
-        <div class="field"><label>REGISTRATION</label><input id="f_reg" placeholder="B-17885"></div>
+        <div class="field"><label>AIRCRAFT TYPE</label><input id="f_type" placeholder="B78" maxlength="4"></div>
+        <div class="field"><label>REGISTRATION</label><input id="f_reg" placeholder="B-178" maxlength="7"></div>
 
         <div class="field"><label>TOTAL FLIGHT (H:MM)</label><input id="f_total" placeholder="AUTO"></div>
         <div class="field"><label>NIGHT (H:MM)</label><input id="f_night" placeholder=""></div>
@@ -477,9 +477,9 @@
         <div class="field"><label>DUAL (H:MM)</label><input id="f_dual" placeholder=""></div>
 
         <div class="field"><label>FI (H:MM)</label><input id="f_fi" placeholder=""></div>
-        <div class="field"><label>LDG DAY</label><input id="f_ldg_day" type="number" min="0" placeholder="0"></div>
+        <div class="field"><label>LDG DAY</label><input id="f_ldg_day" type="number" min="0" placeholder=""></div>
 
-        <div class="field"><label>LDG NIGHT</label><input id="f_ldg_night" type="number" min="0" placeholder="0"></div>
+        <div class="field"><label>LDG NIGHT</label><input id="f_ldg_night" type="number" min="0" placeholder=""></div>
         <div class="field"><label>FSTD DATE (DD.MM.YY)</label><input id="f_sim_date" placeholder=""></div>
 
         <div class="field"><label>FSTD TYPE</label><input id="f_sim_type" placeholder=""></div>
@@ -974,7 +974,7 @@ function clearModalFields(){
     const el = document.getElementById(id);
     if(!el) return;
     if(id === "f_name") el.value = "SELF";
-    else if(id === "f_ldg_day" || id === "f_ldg_night") el.value = "0";
+    else if(id === "f_ldg_day" || id === "f_ldg_night") el.value = "";
     else el.value = "";
   });
 }
@@ -1025,8 +1025,8 @@ function saveFromModal(){
   row.cop   = normalizeHM(get("f_cop"));
   row.dual  = normalizeHM(get("f_dual"));
   row.fi    = normalizeHM(get("f_fi"));
-  row.ldgDay   = String(document.getElementById("f_ldg_day").value || "0").trim();
-  row.ldgNight = String(document.getElementById("f_ldg_night").value || "0").trim();
+  row.ldgDay   = String(document.getElementById("f_ldg_day").value || "").trim();
+  row.ldgNight = String(document.getElementById("f_ldg_night").value || "").trim();
 
   row.simDate  = get("f_sim_date");
   row.simType  = get("f_sim_type");
