@@ -536,7 +536,30 @@ function saveJSON(k, v){
   try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){}
 }
 function up(s){ return (s||"").toUpperCase(); }
-function escapeHTML(s){
+function normalizeAircraftType(raw){
+  let s = up(raw).replace(/\s+/g,"").replace(/[^A-Z0-9]/g,"");
+  if(s === "1") return "B781";
+  if(s === "9") return "B789";
+  if(s === "781") return "B781";
+  if(s === "789") return "B789";
+  if(s === "B781" || s === "B789") return s;
+  if(s === "B78") return "B78";
+  if(/^B78[19]$/.test(s)) return s === "B781" ? "B781" : "B789";
+  return up(raw);
+}
+
+function normalizeRegistration(raw){
+  let s = up(raw).trim();
+  if(/^\d{2}$/.test(s)) return "B-178" + s;
+  if(/^\d{3}$/.test(s)) return "B-178" + s;
+  if(/^\d{5}$/.test(s) && s.startsWith("178")) return "B-" + s;
+  if(/^B\d{5}$/.test(s)) return "B-" + s.slice(1);
+  if(s === "B-178") return "B-178";
+  if(/^B-\d{5}$/.test(s)) return s;
+  s = s.replace(/[^A-Z0-9-]/g,"");
+  return s;
+}
+  function escapeHTML(s){
   return String(s||"").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m] || m));
 }
 
@@ -970,10 +993,14 @@ function clearModalFields(){
     "f_total","f_night","f_ifr","f_pic","f_cop","f_dual","f_fi",
     "f_ldg_day","f_ldg_night","f_sim_date","f_sim_type","f_sim_total","f_rem"
   ];
+
   ids.forEach(id=>{
     const el = document.getElementById(id);
     if(!el) return;
+
     if(id === "f_name") el.value = "SELF";
+    else if(id === "f_type") el.value = "B78";
+    else if(id === "f_reg") el.value = "B-178";
     else if(id === "f_ldg_day" || id === "f_ldg_night") el.value = "";
     else el.value = "";
   });
@@ -1014,8 +1041,8 @@ function saveFromModal(){
   row.arrPlace = arr;
   row.out = out;
   row.in = inn;
-  row.acType = get("f_type");
-  row.acReg  = get("f_reg");
+  row.acType = normalizeAircraftType(get("f_type"));
+  row.acReg  = normalizeRegistration(get("f_reg"));
   row.name   = get("f_name") || "SELF";
 
   row.total = total;
@@ -1106,7 +1133,32 @@ function importBackup(){
   };
   input.click();
 }
+(function wireModalAutofill(){
+  const typeEl = document.getElementById("f_type");
+  const regEl  = document.getElementById("f_reg");
 
+  if(typeEl){
+    typeEl.addEventListener("input", () => {
+      const before = typeEl.value;
+      const after = normalizeAircraftType(before);
+      if(after !== before) typeEl.value = after;
+    });
+    typeEl.addEventListener("blur", () => {
+      typeEl.value = normalizeAircraftType(typeEl.value);
+    });
+  }
+
+  if(regEl){
+    regEl.addEventListener("input", () => {
+      const before = regEl.value;
+      const after = normalizeRegistration(before);
+      if(after !== before) regEl.value = after;
+    });
+    regEl.addEventListener("blur", () => {
+      regEl.value = normalizeRegistration(regEl.value);
+    });
+  }
+})();
 /* =========================
    INIT
    ========================= */
