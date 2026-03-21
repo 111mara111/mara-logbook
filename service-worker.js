@@ -1,5 +1,5 @@
 /* service-worker.js (GitHub Pages safe) */
-const CACHE_VERSION = "mara-logbook-v11"; // bump this every time you change files
+const CACHE_VERSION = "mara-logbook-v12"; // bump this every time you change files
 
 // Build URLs relative to the service worker scope (works on /mara-logbook/)
 const scopeUrl = new URL(self.registration.scope);
