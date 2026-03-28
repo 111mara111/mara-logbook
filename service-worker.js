@@ -1,69 +1,66 @@
-/* service-worker.js (GitHub Pages safe) */
-const CACHE_VERSION = "mara-logbook-v12"; // bump this every time you change files
+/* service-worker.js */
+const CACHE_NAME = "mara-logbook-v13"; // 👈 bump this when you change files
 
-// Build URLs relative to the service worker scope (works on /mara-logbook/)
-const scopeUrl = new URL(self.registration.scope);
-const APP_SHELL = [
-  new URL("./", scopeUrl).toString(),
-  new URL("./index.html", scopeUrl).toString(),
-  new URL("./manifest.json", scopeUrl).toString(),
-  new URL("./icon-192.png", scopeUrl).toString(),
-  new URL("./icon-512.png", scopeUrl).toString(),
-  new URL("./service-worker.js", scopeUrl).toString(),
+const CORE_ASSETS = [
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./icon-192.png",
+  "./icon-512.png"
 ];
 
+// Install: pre-cache core assets
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_VERSION).then(async (cache) => {
-      // force fresh download (avoids GitHub Pages / Safari cache weirdness)
-      await cache.addAll(APP_SHELL.map((u) => new Request(u, { cache: "reload" })));
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS))
   );
   self.skipWaiting();
 });
 
+// Activate: clean old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k)))
+      Promise.all(
+        keys
+          .filter((k) => k.startsWith("mara-logbook-") && k !== CACHE_NAME)
+          .map((k) => caches.delete(k))
+      )
     )
   );
   self.clients.claim();
 });
 
+// Fetch: cache-first for same-origin GET requests
 self.addEventListener("fetch", (event) => {
   const req = event.request;
+
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
 
-  // only same-origin
+  // Only handle same-origin (your own files)
   if (url.origin !== self.location.origin) return;
 
-  // cache-first for app shell & navigations (so the app opens offline)
-  const isNavigation = req.mode === "navigate";
-  if (isNavigation) {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_VERSION).then((cache) => cache.put(req, copy));
-          return res;
-        })
-        .catch(() => caches.match(new URL("./index.html", scopeUrl).toString()))
-    );
-    return;
-  }
-
-  // cache-first for everything else
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
-      return fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE_VERSION).then((cache) => cache.put(req, copy));
-        return res;
-      });
+
+      return fetch(req)
+        .then((res) => {
+          // Cache a copy for next time
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          return res;
+        })
+        .catch(() => {
+          // If offline and request is navigation, serve cached index.html
+          if (req.mode === "navigate") {
+            return caches.match("./index.html");
+          }
+          // Otherwise: fail normally
+          return cached;
+        });
     })
   );
 });
