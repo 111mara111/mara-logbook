@@ -337,11 +337,7 @@
 
 <body>
   <div class="app">
-    <script>
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
-      }
-    </script>
+   
 <script>
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
@@ -1079,46 +1075,43 @@ function saveFromModal(){
   render();
 }
 
-/* =========================
+   /* =========================
    BACKUP / RESTORE
    ========================= */
 function exportBackup(){
+  // Always export what you currently have in memory
   downloadBackupJSON();
 }
-  // If you have unsaved edits, export what you see (in-memory).
-  const payload = {
-    flights,
-    base,
-    theme: (document.body.classList.contains("light") ? "light" : "dark"),
-    page: currentPage
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "MARA-LOGBOOK-BACKUP.JSON";
-  a.click();
-}
+
 function importBackup(){
   const input = document.createElement("input");
-  input.type="file";
-  input.accept=".json,application/json";
-  input.onchange = ()=>{
+  input.type = "file";
+  input.accept = ".json,application/json";
+
+  input.onchange = () => {
     const file = input.files && input.files[0];
     if(!file) return;
+
     const r = new FileReader();
-    r.onload = ()=>{
+    r.onload = () => {
       try{
-        const obj = JSON.parse(String(r.result||"{}"));
+        const obj = JSON.parse(String(r.result || "{}"));
+
         if(Array.isArray(obj.flights)) flights = obj.flights;
         if(obj.base) base = obj.base;
+
         applyTheme(obj.theme === "light" ? "light" : "dark");
+
         currentPage = parseInt(obj.page || "1", 10) || 1;
         localStorage.setItem(KEY_PAGE, String(currentPage));
+
         compactFlights();
-        // importing is an intentional action → save immediately
+
+        // importing is intentional → save immediately
         saveJSON(KEY_FLIGHTS, flights);
         saveJSON(KEY_BASE, base);
         clearDirty();
+
         render();
       }catch(e){
         alert("BACKUP FILE NOT VALID.");
@@ -1126,6 +1119,7 @@ function importBackup(){
     };
     r.readAsText(file);
   };
+
   input.click();
 }
 
