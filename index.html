@@ -558,6 +558,28 @@ function manualSave(){
   clearDirty();
   render();
 }
+ function downloadBackupJSON(){
+  // Same payload as your BACKUP button
+  const payload = {
+    flights,
+    base,
+    theme: (document.body.classList.contains("light") ? "light" : "dark"),
+    page: currentPage
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "MARA-LOGBOOK-BACKUP.json"; // constant filename
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  // cleanup
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
 
 /* ===== TYPE/REG NORMALIZE (modal) ===== */
 function normalizeAircraftType(raw){
@@ -1051,6 +1073,8 @@ function saveFromModal(){
   saveJSON(KEY_BASE, base);
   clearDirty();
 
+// AUTO BACKUP (downloads MARA-LOGBOOK-BACKUP.json)
+  downloadBackupJSON();
   closeModal();
   render();
 }
@@ -1059,6 +1083,8 @@ function saveFromModal(){
    BACKUP / RESTORE
    ========================= */
 function exportBackup(){
+  downloadBackupJSON();
+}
   // If you have unsaved edits, export what you see (in-memory).
   const payload = {
     flights,
