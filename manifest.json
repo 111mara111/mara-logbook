@@ -1,7 +1,8 @@
 {
   "name": "Mara Pilot Logbook",
   "short_name": "Logbook",
-  "start_url": "./",
+  "start_url": "./index.html",
+  "scope": "./"
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#163a6b",
